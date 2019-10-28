@@ -30,7 +30,7 @@ struct segment_tree {
   }
   
   /* [l, r) */
-  T get(i64 l, i64 r) {
+  T sum(i64 l, i64 r) {
     T lx = ide();
     T rx = ide();
     l += n;

@@ -57,7 +57,7 @@ struct dynamic_segment_tree {
     update(root, i, x, 0, n);
   }
 
-  T get(i64 a, i64 b) {
+  T sum(i64 a, i64 b) {
     return get(root, a, b, 0, n);
   }
 };
