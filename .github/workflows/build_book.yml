@@ -1,0 +1,47 @@
+name: Build Book
+
+on:
+  push:
+    branches: master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: download mdbook
+      run: |
+        wget https://github.com/rust-lang-nursery/mdBook/releases/download/v0.3.3/mdbook-v0.3.3-x86_64-unknown-linux-gnu.tar.gz
+        tar -xzvf mdbook-v0.3.3-x86_64-unknown-linux-gnu.tar.gz
+        ./mdbook --help
+      
+    - name: Build Book
+      run: ./mdbook build
+      
+    - name: Move to docs
+      run: |
+        rm -rf docs
+        mv -f book docs
+    
+    - name: Remove mdbook
+      run: |
+        rm -rf mdbook-v0.3.3-x86_64-unknown-linux-gnu.tar.gz
+        rm -rf mdbook
+      
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v1.5.4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COMMIT_MESSAGE: Build Book
+        COMMIT_AUTHOR_EMAIL: niuez.graph@gmail.com
+        COMMIT_AUTHOR_NAME: niuez
+        PULL_REQUEST_TITLE: 'Build Book'
+        PULL_REQUEST_BODY: |
+          Build Book for GitHub Pages
+        PULL_REQUEST_BRANCH: build-book
+        BRANCH_SUFFIX: short-commit-hash
+
+    - name: Check output environment variable
+      run: echo "Pull Request Number - $PULL_REQUEST_NUMBER"
