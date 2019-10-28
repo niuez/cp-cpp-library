@@ -4,10 +4,10 @@ using i64 = long long;
  
 struct segment_tree {
   using T = i64;
-  T ope(const T& a, const T& b) {
+  static T ope(const T& a, const T& b) {
     return max(a, b);
   }
-  T ide() { return -1e18; }
+  static T ide() { return -1e18; }
  
   i64 n;
   vector<T> node;
@@ -30,7 +30,7 @@ struct segment_tree {
   }
   
   /* [l, r) */
-  T get(i64 l, i64 r) {
+  T sum(i64 l, i64 r) {
     T lx = ide();
     T rx = ide();
     l += n;

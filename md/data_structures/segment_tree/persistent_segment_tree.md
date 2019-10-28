@@ -1,4 +1,4 @@
-# Segment Tree
+# Persistent Segment Tree
 ### Spec
 
 - `using T = ...`
@@ -10,12 +10,12 @@
 - `T ide()`
   - Tの単位元を返す
 
-- `segment_tree(vector<T> init)`
-  - `init`からSegment Treeを構築する
+- `persistent_segment_tree(vector<T> init)`
+  - `init`からPersistent Segment Treeを構築する
   -  \\( O(n) \\)
 
 - `update(i64 i, T x)`
-  - `i`番目の要素を`x`にする
+  - `i`番目の要素を`x`にしたSegment Treeを返す.
   -  \\( O(\log n) \\)
 
 - `sum(i64 l, i64 r)`
@@ -25,5 +25,5 @@
 ### Code
 
 ```cpp
-{{#include ../../../src/data_structures/segment_tree/segment_tree.hpp}}
+{{#include ../../../src/data_structures/segment_tree/persistent_segment_tree.hpp}}
 ```
