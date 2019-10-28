@@ -1,0 +1,9 @@
+[book]
+authors = ["niuez"]
+language = "ja"
+multilingual = false
+src = "md"
+title = "cp-cpp-library Document"
+
+[output.html]
+mathjax-support = true
