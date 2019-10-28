@@ -8,3 +8,6 @@
       - [Persistent Segment Tree](./data_structures/segment_tree/persistent_segment_tree.md)
       - [Dynamic Segment Tree](./data_structures/segment_tree/dynamic_segment_tree.md)
       - [Li-Chao Segment Tree](./data_structures/segment_tree/li_chao.md)
+  - [Math](./math/mod.md)
+    - [Convolution](./math/convolution/mod.md)
+      - [Multiple Transform](./math/convolution/multiple_transform.md)
