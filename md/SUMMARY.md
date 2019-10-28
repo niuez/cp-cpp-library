@@ -11,3 +11,4 @@
   - [Math](./math/mod.md)
     - [Convolution](./math/convolution/mod.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)
+      - [Divisor Transform](./math/convolution/divisor_transform.md)
