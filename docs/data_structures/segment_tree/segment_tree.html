@@ -84,7 +84,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div id="sidebar-scrollbox" class="sidebar-scrollbox">
-                <ol class="chapter"><li class="expanded "><a href="../../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/mod.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/mod.html"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/segment_tree.html" class="active"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li></ol></li></ol></li></ol></li></ol>
+                <ol class="chapter"><li class="expanded "><a href="../../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/mod.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/mod.html"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/segment_tree.html" class="active"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/lazy_segment_tree.html"><strong aria-hidden="true">1.1.1.2.</strong> Lazy Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/persistent_segment_tree.html"><strong aria-hidden="true">1.1.1.3.</strong> Persistent Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/dynamic_segment_tree.html"><strong aria-hidden="true">1.1.1.4.</strong> Dynamic Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/li_chao.html"><strong aria-hidden="true">1.1.1.5.</strong> Li-Chao Segment Tree</a></li></ol></li></ol></li><li class="expanded "><a href="../../math/mod.html"><strong aria-hidden="true">1.2.</strong> Math</a></li><li><ol class="section"><li class="expanded "><a href="../../math/convolution/mod.html"><strong aria-hidden="true">1.2.1.</strong> Convolution</a></li><li><ol class="section"><li class="expanded "><a href="../../math/convolution/multiple_transform.html"><strong aria-hidden="true">1.2.1.1.</strong> Multiple Transform</a></li><li class="expanded "><a href="../../math/convolution/divisor_transform.html"><strong aria-hidden="true">1.2.1.2.</strong> Divisor Transform</a></li></ol></li></ol></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -187,7 +187,7 @@
 </ul>
 </li>
 <li>
-<p><code>get(i64 l, i64 r)</code></p>
+<p><code>sum(i64 l, i64 r)</code></p>
 <ul>
 <li><code>[l, r)</code>の総和を求める</li>
 <li>\( O(\log n) \)</li>
@@ -201,10 +201,10 @@ using i64 = long long;
  
 struct segment_tree {
   using T = i64;
-  T ope(const T&amp; a, const T&amp; b) {
+  static T ope(const T&amp; a, const T&amp; b) {
     return max(a, b);
   }
-  T ide() { return -1e18; }
+  static T ide() { return -1e18; }
  
   i64 n;
   vector&lt;T&gt; node;
@@ -227,7 +227,7 @@ struct segment_tree {
   }
   
   /* [l, r) */
-  T get(i64 l, i64 r) {
+  T sum(i64 l, i64 r) {
     T lx = ide();
     T rx = ide();
     l += n;
@@ -255,6 +255,10 @@ struct segment_tree {
                         
 
                         
+                            <a rel="next" href="../../data_structures/segment_tree/lazy_segment_tree.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
 
                         <div style="clear: both"></div>
                     </nav>
@@ -268,6 +272,10 @@ struct segment_tree {
                     </a>
                 
 
+                
+                    <a href="../../data_structures/segment_tree/lazy_segment_tree.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 
             </nav>
 

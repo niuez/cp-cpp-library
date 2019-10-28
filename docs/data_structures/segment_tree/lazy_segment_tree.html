@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Segment Trees - cp-cpp-library Document</title>
+        <title>Lazy Segment Tree - cp-cpp-library Document</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -84,7 +84,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div id="sidebar-scrollbox" class="sidebar-scrollbox">
-                <ol class="chapter"><li class="expanded "><a href="../../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/mod.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/mod.html" class="active"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/segment_tree.html"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/lazy_segment_tree.html"><strong aria-hidden="true">1.1.1.2.</strong> Lazy Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/persistent_segment_tree.html"><strong aria-hidden="true">1.1.1.3.</strong> Persistent Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/dynamic_segment_tree.html"><strong aria-hidden="true">1.1.1.4.</strong> Dynamic Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/li_chao.html"><strong aria-hidden="true">1.1.1.5.</strong> Li-Chao Segment Tree</a></li></ol></li></ol></li><li class="expanded "><a href="../../math/mod.html"><strong aria-hidden="true">1.2.</strong> Math</a></li><li><ol class="section"><li class="expanded "><a href="../../math/convolution/mod.html"><strong aria-hidden="true">1.2.1.</strong> Convolution</a></li><li><ol class="section"><li class="expanded "><a href="../../math/convolution/multiple_transform.html"><strong aria-hidden="true">1.2.1.1.</strong> Multiple Transform</a></li><li class="expanded "><a href="../../math/convolution/divisor_transform.html"><strong aria-hidden="true">1.2.1.2.</strong> Divisor Transform</a></li></ol></li></ol></li></ol></li></ol>
+                <ol class="chapter"><li class="expanded "><a href="../../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/mod.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/mod.html"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/segment_tree.html"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/lazy_segment_tree.html" class="active"><strong aria-hidden="true">1.1.1.2.</strong> Lazy Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/persistent_segment_tree.html"><strong aria-hidden="true">1.1.1.3.</strong> Persistent Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/dynamic_segment_tree.html"><strong aria-hidden="true">1.1.1.4.</strong> Dynamic Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/li_chao.html"><strong aria-hidden="true">1.1.1.5.</strong> Li-Chao Segment Tree</a></li></ol></li></ol></li><li class="expanded "><a href="../../math/mod.html"><strong aria-hidden="true">1.2.</strong> Math</a></li><li><ol class="section"><li class="expanded "><a href="../../math/convolution/mod.html"><strong aria-hidden="true">1.2.1.</strong> Convolution</a></li><li><ol class="section"><li class="expanded "><a href="../../math/convolution/multiple_transform.html"><strong aria-hidden="true">1.2.1.1.</strong> Multiple Transform</a></li><li class="expanded "><a href="../../math/convolution/divisor_transform.html"><strong aria-hidden="true">1.2.1.2.</strong> Divisor Transform</a></li></ol></li></ol></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -151,37 +151,160 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#segment-trees" id="segment-trees">Segment Trees</a></h1>
+                        <h1><a class="header" href="#lazy-segment-tree" id="lazy-segment-tree">Lazy Segment Tree</a></h1>
+<h3><a class="header" href="#spec" id="spec">Spec</a></h3>
 <ul>
 <li>
-<p><a href="./segment_tree.html">Segment Tree</a></p>
+<p><code>using T = ...</code></p>
+<ul>
+<li>Segment Treeに載せる型</li>
+</ul>
 </li>
 <li>
-<p><a href="./lazy_segment_tree.html">Lazy Segment Tree</a></p>
+<p><code>using L = ...</code></p>
+<ul>
+<li>遅延伝搬させる作用素</li>
+</ul>
 </li>
 <li>
-<p><a href="./persistent_segment_tree.html">Persistent Segment Tree</a></p>
+<p><code>T t_ide()</code></p>
+<ul>
+<li>Tの単位元を返す</li>
+</ul>
 </li>
 <li>
-<p><a href="./dynamic_segment_tree.html">Dynamic Segment Tree</a></p>
+<p><code>L l_ide()</code></p>
+<ul>
+<li>Lの単位元を返す</li>
+</ul>
 </li>
 <li>
-<p><a href="./li_chao.html">Li-Chao Segment Tree</a></p>
+<p><code>T ope(const T&amp; a, const T&amp; b)</code></p>
+<ul>
+<li>Tの演算を指定する</li>
+</ul>
+</li>
+<li>
+<p><code>L lazy_ope(const L&amp; a, const L&amp; b)</code></p>
+<ul>
+<li>Tの演算を指定する</li>
+</ul>
+</li>
+<li>
+<p><code>T effect(const T&amp; t, const L&amp; l, const i64 len)</code></p>
+<ul>
+<li>長さ<code>len</code>の区間の総和<code>t</code>に作用<code>l</code>をする</li>
+</ul>
+</li>
+<li>
+<p><code>lazy_segment_tree(const vector&lt;T&gt;&amp; init)</code></p>
+<ul>
+<li><code>init</code>からLazy Segment Treeを構築する</li>
+<li>\( O(n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>update(i64 a, i64 b, L lx)</code></p>
+<ul>
+<li><code>[a, b)</code>番目の要素に作用<code>lx</code>をする</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>sum(i64 a, i64 b)</code></p>
+<ul>
+<li><code>[a, b)</code>の総和を求める</li>
+<li>\( O(\log n) \)</li>
+</ul>
 </li>
 </ul>
+<h3><a class="header" href="#code" id="code">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+
+struct lazy_segment_tree {
+  using T = i64;
+  using L = pair&lt;i64, i64&gt;;
+  static T t_ide() { return 0; }
+  static L l_ide() { return {0, 0}; }
+  static T ope(const T&amp; a, const T&amp; b) { return a + b; }
+  static L lazy_ope(const L&amp; a, const L&amp; b) { return { a.first + b.first, a.second + b.second }; }
+  static T effect(const T&amp; t, const L&amp; l, const i64 len) { return t + l.first * len; }
+
+  i64 n;
+  vector&lt;T&gt; node;
+  vector&lt;L&gt; lazy;
+  vector&lt;bool&gt; flag;
+
+  /* create lazy_segment_tree for sequence [t_ide; sz]A */
+  lazy_segment_tree(const vector&lt;T&gt;&amp; init) {
+    n = 1;
+    while(n &lt; init.size()) n *= 2;
+    node.resize(2 * n - 1);
+    lazy.resize(2 * n - 1);
+    flag.resize(2 * n - 1);
+    for(int i = 0;i &lt; init.size();i++) node[i + n - 1] = init[i];
+    for(int i = n - 2; i &gt;= 0;i--) node[i] = ope(node[i * 2 + 1], node[i * 2 + 2]);
+  }
+  
+
+  void eval(i64 l, i64 r, i64 k) {
+    if(flag[k]) {
+      node[k] = effect(node[k], lazy[k], r - l);
+      
+      if(r - l &gt; 1) {
+        lazy[k * 2 + 1] = lazy_ope(lazy[k * 2 + 1], lazy[k]);
+        flag[k * 2 + 1] = true;
+        lazy[k * 2 + 2] = lazy_ope(lazy[k * 2 + 2], lazy[k]);
+        flag[k * 2 + 2] = true;
+      }
+
+      flag[k] = false;
+      lazy[k] = l_ide();
+    }
+  }
+  
+  /* for i in [a, b) effect(a[i], lx) */
+  void update(i64 a, i64 b, L lx, i64 l = 0, i64 r = -1, i64 k = 0) {
+    if(r &lt; 0) r = n;
+    eval(l, r, k);
+    if(b &lt;= l || r &lt;= a) return;
+    else if(a &lt;= l &amp;&amp; r &lt;= b) {
+      lazy[k] = lazy_ope(lazy[k], lx);
+      flag[k] = true;
+      eval(l, r, k);
+    }
+    else {
+      update(a, b, lx, l, (l + r) / 2, k * 2 + 1);
+      update(a, b, lx, (l + r) / 2, r, k * 2 + 2);
+      node[k] =ope(node[k * 2 + 1], node[k * 2 + 2]);
+    }
+  }
+  
+  /* the sum of a[i] for i in [a, b) */
+  T sum(i64 a, i64 b, i64 l = 0, i64 r = -1, i64 k = 0) {
+    if(r &lt; 0) r = n;
+    eval(l, r, k);
+    if(b &lt;= l || r &lt;= a) return t_ide();
+    else if(a &lt;= l &amp;&amp; r &lt;= b) return node[k];
+    else return ope(sum(a, b, l, (l + r) / 2, k * 2 + 1), sum(a, b, (l + r) / 2, r, k * 2 + 2));
+  }
+};
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="../../data_structures/mod.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../data_structures/segment_tree/segment_tree.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
                         
-                            <a rel="next" href="../../data_structures/segment_tree/segment_tree.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../../data_structures/segment_tree/persistent_segment_tree.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -193,13 +316,13 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="../../data_structures/mod.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="../../data_structures/segment_tree/segment_tree.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
                 
-                    <a href="../../data_structures/segment_tree/segment_tree.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="../../data_structures/segment_tree/persistent_segment_tree.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
