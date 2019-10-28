@@ -86,7 +86,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div id="sidebar-scrollbox" class="sidebar-scrollbox">
-                <ol class="chapter"><li class="expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/mod.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/segment_tree/mod.html"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/segment_tree/segment_tree.html"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li></ol></li></ol></li></ol></li></ol>
+                <ol class="chapter"><li class="expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/mod.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/segment_tree/mod.html"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/segment_tree/segment_tree.html"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li><li class="expanded "><a href="data_structures/segment_tree/lazy_segment_tree.html"><strong aria-hidden="true">1.1.1.2.</strong> Lazy Segment Tree</a></li><li class="expanded "><a href="data_structures/segment_tree/persistent_segment_tree.html"><strong aria-hidden="true">1.1.1.3.</strong> Persistent Segment Tree</a></li><li class="expanded "><a href="data_structures/segment_tree/dynamic_segment_tree.html"><strong aria-hidden="true">1.1.1.4.</strong> Dynamic Segment Tree</a></li><li class="expanded "><a href="data_structures/segment_tree/li_chao.html"><strong aria-hidden="true">1.1.1.5.</strong> Li-Chao Segment Tree</a></li></ol></li></ol></li><li class="expanded "><a href="math/mod.html"><strong aria-hidden="true">1.2.</strong> Math</a></li><li><ol class="section"><li class="expanded "><a href="math/convolution/mod.html"><strong aria-hidden="true">1.2.1.</strong> Convolution</a></li><li><ol class="section"><li class="expanded "><a href="math/convolution/multiple_transform.html"><strong aria-hidden="true">1.2.1.1.</strong> Multiple Transform</a></li><li class="expanded "><a href="math/convolution/divisor_transform.html"><strong aria-hidden="true">1.2.1.2.</strong> Divisor Transform</a></li></ol></li></ol></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -159,7 +159,21 @@
 <p>いろいろ, あるよね</p>
 <h1><a class="header" href="#segment-trees" id="segment-trees">Segment Trees</a></h1>
 <ul>
-<li><a href="data_structures/segment_tree/./segment_tree.html">Segment Tree</a></li>
+<li>
+<p><a href="data_structures/segment_tree/./segment_tree.html">Segment Tree</a></p>
+</li>
+<li>
+<p><a href="data_structures/segment_tree/./lazy_segment_tree.html">Lazy Segment Tree</a></p>
+</li>
+<li>
+<p><a href="data_structures/segment_tree/./persistent_segment_tree.html">Persistent Segment Tree</a></p>
+</li>
+<li>
+<p><a href="data_structures/segment_tree/./dynamic_segment_tree.html">Dynamic Segment Tree</a></p>
+</li>
+<li>
+<p><a href="data_structures/segment_tree/./li_chao.html">Li-Chao Segment Tree</a></p>
+</li>
 </ul>
 <h1><a class="header" href="#segment-tree" id="segment-tree">Segment Tree</a></h1>
 <h3><a class="header" href="#spec" id="spec">Spec</a></h3>
@@ -197,7 +211,7 @@
 </ul>
 </li>
 <li>
-<p><code>get(i64 l, i64 r)</code></p>
+<p><code>sum(i64 l, i64 r)</code></p>
 <ul>
 <li><code>[l, r)</code>の総和を求める</li>
 <li>\( O(\log n) \)</li>
@@ -211,10 +225,10 @@ using i64 = long long;
  
 struct segment_tree {
   using T = i64;
-  T ope(const T&amp; a, const T&amp; b) {
+  static T ope(const T&amp; a, const T&amp; b) {
     return max(a, b);
   }
-  T ide() { return -1e18; }
+  static T ide() { return -1e18; }
  
   i64 n;
   vector&lt;T&gt; node;
@@ -237,7 +251,7 @@ struct segment_tree {
   }
   
   /* [l, r) */
-  T get(i64 l, i64 r) {
+  T sum(i64 l, i64 r) {
     T lx = ide();
     T rx = ide();
     l += n;
@@ -252,6 +266,586 @@ struct segment_tree {
     return ope(lx, rx);
   }
 };
+</code></pre>
+<h1><a class="header" href="#lazy-segment-tree" id="lazy-segment-tree">Lazy Segment Tree</a></h1>
+<h3><a class="header" href="#spec-1" id="spec-1">Spec</a></h3>
+<ul>
+<li>
+<p><code>using T = ...</code></p>
+<ul>
+<li>Segment Treeに載せる型</li>
+</ul>
+</li>
+<li>
+<p><code>using L = ...</code></p>
+<ul>
+<li>遅延伝搬させる作用素</li>
+</ul>
+</li>
+<li>
+<p><code>T t_ide()</code></p>
+<ul>
+<li>Tの単位元を返す</li>
+</ul>
+</li>
+<li>
+<p><code>L l_ide()</code></p>
+<ul>
+<li>Lの単位元を返す</li>
+</ul>
+</li>
+<li>
+<p><code>T ope(const T&amp; a, const T&amp; b)</code></p>
+<ul>
+<li>Tの演算を指定する</li>
+</ul>
+</li>
+<li>
+<p><code>L lazy_ope(const L&amp; a, const L&amp; b)</code></p>
+<ul>
+<li>Tの演算を指定する</li>
+</ul>
+</li>
+<li>
+<p><code>T effect(const T&amp; t, const L&amp; l, const i64 len)</code></p>
+<ul>
+<li>長さ<code>len</code>の区間の総和<code>t</code>に作用<code>l</code>をする</li>
+</ul>
+</li>
+<li>
+<p><code>lazy_segment_tree(const vector&lt;T&gt;&amp; init)</code></p>
+<ul>
+<li><code>init</code>からLazy Segment Treeを構築する</li>
+<li>\( O(n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>update(i64 a, i64 b, L lx)</code></p>
+<ul>
+<li><code>[a, b)</code>番目の要素に作用<code>lx</code>をする</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>sum(i64 a, i64 b)</code></p>
+<ul>
+<li><code>[a, b)</code>の総和を求める</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+</ul>
+<h3><a class="header" href="#code-1" id="code-1">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+
+struct lazy_segment_tree {
+  using T = i64;
+  using L = pair&lt;i64, i64&gt;;
+  static T t_ide() { return 0; }
+  static L l_ide() { return {0, 0}; }
+  static T ope(const T&amp; a, const T&amp; b) { return a + b; }
+  static L lazy_ope(const L&amp; a, const L&amp; b) { return { a.first + b.first, a.second + b.second }; }
+  static T effect(const T&amp; t, const L&amp; l, const i64 len) { return t + l.first * len; }
+
+  i64 n;
+  vector&lt;T&gt; node;
+  vector&lt;L&gt; lazy;
+  vector&lt;bool&gt; flag;
+
+  /* create lazy_segment_tree for sequence [t_ide; sz]A */
+  lazy_segment_tree(const vector&lt;T&gt;&amp; init) {
+    n = 1;
+    while(n &lt; init.size()) n *= 2;
+    node.resize(2 * n - 1);
+    lazy.resize(2 * n - 1);
+    flag.resize(2 * n - 1);
+    for(int i = 0;i &lt; init.size();i++) node[i + n - 1] = init[i];
+    for(int i = n - 2; i &gt;= 0;i--) node[i] = ope(node[i * 2 + 1], node[i * 2 + 2]);
+  }
+  
+
+  void eval(i64 l, i64 r, i64 k) {
+    if(flag[k]) {
+      node[k] = effect(node[k], lazy[k], r - l);
+      
+      if(r - l &gt; 1) {
+        lazy[k * 2 + 1] = lazy_ope(lazy[k * 2 + 1], lazy[k]);
+        flag[k * 2 + 1] = true;
+        lazy[k * 2 + 2] = lazy_ope(lazy[k * 2 + 2], lazy[k]);
+        flag[k * 2 + 2] = true;
+      }
+
+      flag[k] = false;
+      lazy[k] = l_ide();
+    }
+  }
+  
+  /* for i in [a, b) effect(a[i], lx) */
+  void update(i64 a, i64 b, L lx, i64 l = 0, i64 r = -1, i64 k = 0) {
+    if(r &lt; 0) r = n;
+    eval(l, r, k);
+    if(b &lt;= l || r &lt;= a) return;
+    else if(a &lt;= l &amp;&amp; r &lt;= b) {
+      lazy[k] = lazy_ope(lazy[k], lx);
+      flag[k] = true;
+      eval(l, r, k);
+    }
+    else {
+      update(a, b, lx, l, (l + r) / 2, k * 2 + 1);
+      update(a, b, lx, (l + r) / 2, r, k * 2 + 2);
+      node[k] =ope(node[k * 2 + 1], node[k * 2 + 2]);
+    }
+  }
+  
+  /* the sum of a[i] for i in [a, b) */
+  T sum(i64 a, i64 b, i64 l = 0, i64 r = -1, i64 k = 0) {
+    if(r &lt; 0) r = n;
+    eval(l, r, k);
+    if(b &lt;= l || r &lt;= a) return t_ide();
+    else if(a &lt;= l &amp;&amp; r &lt;= b) return node[k];
+    else return ope(sum(a, b, l, (l + r) / 2, k * 2 + 1), sum(a, b, (l + r) / 2, r, k * 2 + 2));
+  }
+};
+</code></pre>
+<h1><a class="header" href="#persistent-segment-tree" id="persistent-segment-tree">Persistent Segment Tree</a></h1>
+<h3><a class="header" href="#spec-2" id="spec-2">Spec</a></h3>
+<ul>
+<li>
+<p><code>using T = ...</code></p>
+<ul>
+<li>Segment Treeに載せる型</li>
+</ul>
+</li>
+<li>
+<p><code>T ope(const T&amp; a, const T&amp; b)</code></p>
+<ul>
+<li>Tの演算を指定する</li>
+</ul>
+</li>
+<li>
+<p><code>T ide()</code></p>
+<ul>
+<li>Tの単位元を返す</li>
+</ul>
+</li>
+<li>
+<p><code>persistent_segment_tree(vector&lt;T&gt; init)</code></p>
+<ul>
+<li><code>init</code>からPersistent Segment Treeを構築する</li>
+<li>\( O(n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>update(i64 i, T x)</code></p>
+<ul>
+<li><code>i</code>番目の要素を<code>x</code>にしたSegment Treeを返す.</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>sum(i64 l, i64 r)</code></p>
+<ul>
+<li><code>[l, r)</code>の総和を求める</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+</ul>
+<h3><a class="header" href="#code-2" id="code-2">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;memory&gt;
+#include &lt;set&gt;
+#include &lt;vector&gt;
+using namespace std;
+using i64 = long long;
+
+struct persistent_segment_tree {
+  using T = pair&lt;i64, i64&gt;;
+  struct node {
+    using Ptr = node*;
+    T data;
+    Ptr left;
+    Ptr right;
+    
+    node(T data): data(data), left(), right() {}
+    node(T data, Ptr left, Ptr right)
+      : data(data), left(left), right(right) {}
+  };
+
+  using Ptr = node*;
+
+  static T ope(const T&amp; a, const T&amp; b) { return std::min(a, b); }
+  static T ide() { return {(i64)(1e18), (i64)(1e18)}; }
+
+  Ptr root;
+  i64 N;
+
+  static Ptr build(i64 l, i64 r, const vector&lt;T&gt;&amp; init) {
+    if(l + 1 &gt;= r) return new node(init[l]);
+    else {
+      Ptr le = build(l , (l + r) / 2, init);
+      Ptr ri = build((l + r) / 2, r, init);
+      T da = ope(le-&gt;data, ri-&gt;data);
+      return new node(da, le, ri);
+    }
+  }
+
+  static Ptr update(Ptr node, i64 i, T val, i64 l, i64 r) {
+    if(i == l &amp;&amp; i + 1 == r) return new struct node(val);
+    Ptr left = nullptr;
+    Ptr right = nullptr;
+    if(l &lt;= i &amp;&amp; i &lt; ((l + r) &gt;&gt; 1)) {
+      left = update(node-&gt;left, i, val, l, (l + r) &gt;&gt; 1);
+      right = node-&gt;right;
+    }
+    else {
+      left = node-&gt;left;
+      right = update(node-&gt;right, i, val, (l + r) &gt;&gt; 1, r);
+    }
+    return new struct node(ope(left-&gt;data, right-&gt;data), left, right);
+  }
+
+  static T sum(Ptr node, i64 a, i64 b, i64 l, i64 r) {
+    if(b &lt;= l || r &lt;= a) return ide();
+    else if(a &lt;= l &amp;&amp; r &lt;= b) return node-&gt;data;
+    else return ope(
+        sum(node-&gt;left, a, b, l, (l + r) &gt;&gt; 1),
+        sum(node-&gt;right, a, b, (l + r) &gt;&gt; 1, r)
+        );
+  }
+
+  persistent_segment_tree(const vector&lt;T&gt;&amp; init)
+    : root(build(0, init.size(), init)), N(init.size()) {}
+  persistent_segment_tree(Ptr root, i64 N): root(root), N(N) {}
+  persistent_segment_tree update(i64 i, T x) const {
+    return persistent_segment_tree(update(root, i, x, 0, N), N);
+  }
+  T sum(i64 l, i64 r) { return sum(root, l, r, 0, N); }
+};
+</code></pre>
+<h1><a class="header" href="#dynamic-segment-tree" id="dynamic-segment-tree">Dynamic Segment Tree</a></h1>
+<h3><a class="header" href="#spec-3" id="spec-3">Spec</a></h3>
+<ul>
+<li>
+<p><code>using T = ...</code></p>
+<ul>
+<li>Dynamic Segment Treeに載せる型</li>
+</ul>
+</li>
+<li>
+<p><code>T ope(const T&amp; a, const T&amp; b)</code></p>
+<ul>
+<li>Tの演算を指定する</li>
+</ul>
+</li>
+<li>
+<p><code>T ide()</code></p>
+<ul>
+<li>Tの単位元を返す</li>
+</ul>
+</li>
+<li>
+<p><code>dynamic_segment_tree(const i64 n)</code></p>
+<ul>
+<li><code>[ide; n]</code>の列を扱うDynamic Segment Treeを構築する</li>
+<li>\( O(1) \)</li>
+</ul>
+</li>
+<li>
+<p><code>update(i64 i, T x)</code></p>
+<ul>
+<li><code>i</code>番目の要素を<code>x</code>にする</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>sum(i64 l, i64 r)</code></p>
+<ul>
+<li><code>[l, r)</code>の総和を求める</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+</ul>
+<h3><a class="header" href="#code-3" id="code-3">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+
+struct dynamic_segment_tree {
+  using T = i64;
+  static T ide() { return 0ll; }
+  static T ope(const T&amp; a, const T&amp; b) { return a + b; }
+
+  struct node {
+    node* left;
+    node* right;
+    T val;
+    node(T v): val(v), left(nullptr), right(nullptr) {}
+  };
+
+  i64 n;
+  node* root;
+  dynamic_segment_tree(const i64 sz): root(new node(ide())) {
+    n = 1;
+    while(n &lt; sz) n *= 2;
+  }
+  T value(node* n) {
+    if(n) return n-&gt;val;
+    else return ide();
+  }
+  void update(node* n, i64 i, T x, i64 l, i64 r) {
+    if(l + 1 == r) {
+      n-&gt;val = x;
+    }
+    else {
+      i64 m = (l + r) / 2;
+      if(i &lt; m) {
+        if(!n-&gt;left) {
+          n-&gt;left = new node(ide());
+        }
+        update(n-&gt;left, i, x, l, m);
+      }
+      else {
+        if(!n-&gt;right) {
+          n-&gt;right = new node(ide());
+        }
+        update(n-&gt;right, i, x, m, r);
+      }
+      n-&gt;val = ope(value(n-&gt;left), value(n-&gt;right));
+    }
+  }
+
+  T get(node* n, i64 a, i64 b, i64 l, i64 r) {
+    if(!n) return ide();
+    if(a &lt;= l &amp;&amp; r &lt;= b) return value(n);
+    else if(r &lt;= a || b &lt;= l) return ide();
+    else return ope(get(n-&gt;left, a, b, l, (l + r) / 2), get(n-&gt;right, a, b, (l + r) / 2, r));
+  }
+
+  void update(i64 i, T x) {
+    update(root, i, x, 0, n);
+  }
+
+  T sum(i64 a, i64 b) {
+    return get(root, a, b, 0, n);
+  }
+};
+</code></pre>
+<h1><a class="header" href="#li-chao-segment-tree" id="li-chao-segment-tree">Li-Chao Segment Tree</a></h1>
+<h3><a class="header" href="#spec-4" id="spec-4">Spec</a></h3>
+<ul>
+<li>
+<p>template argments</p>
+<ul>
+<li><code>class T</code>
+<ul>
+<li>Li-Chao Segment Treeで扱う型</li>
+<li><code>+, *, /</code>, 比較ができる必要がある</li>
+</ul>
+</li>
+<li><code>const T ide</code>
+<ul>
+<li>Tの単位元(?)</li>
+<li>例えば, 最大値を返すLiChaoなら小さい数を入れておく</li>
+</ul>
+</li>
+<li><code>class Compare = greater&lt;T&gt;</code>
+<ul>
+<li>最大値or最小値</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><code>li_chao(T mi, T, ma)</code></p>
+<ul>
+<li><code>[mi, ma]</code>の間の範囲を管理するLiChaoを構築する.</li>
+</ul>
+</li>
+<li>
+<p><code>void add_line(T a, T b)</code></p>
+<ul>
+<li><code>a * x + b</code>の直線を追加する</li>
+<li>\( O(\log L) \)</li>
+</ul>
+</li>
+<li>
+<p><code>T get(T x)</code></p>
+<ul>
+<li><code>max{a_i * x + b_i}</code>を返す(Compareで<code>min</code>に変えられる)</li>
+<li>\( O(\log L) \)</li>
+</ul>
+</li>
+</ul>
+<h3><a class="header" href="#code-4" id="code-4">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;functional&gt;
+using namespace std;
+template&lt;class T,const T ide,class Compare = greater&lt;T&gt;&gt;
+struct li_chao{
+  struct Line{
+    T a,b;
+    Line(T a = 0,T b = 0) : a(a) , b(b) {}
+    T get(T x){return a * x + b;}
+  };
+ 
+  struct Node{
+    Line line;
+    Node *lhs,*rhs;
+    Node(Line l) : line(l) , lhs(nullptr) , rhs(nullptr){}
+  };
+ 
+  const T MI,MA;
+ 
+  Node * root;
+ 
+  Compare comp;
+ 
+  T comp_get(const T &amp; x,const T &amp; y){
+    if(comp(x , y)) return x;
+    else return y;
+  }
+ 
+  li_chao(T mi , T ma) : MI(mi), MA(ma) , root(nullptr){}
+ 
+  Node * insert(Node * p,T l,T r,Line &amp; line){
+    if(!p) return new Node(line);
+    if(comp(p-&gt;line.get(l) , line.get(l)) &amp;&amp; comp(p-&gt;line.get(r) ,line.get(r))){
+      return p;
+    }
+    if(!comp(p-&gt;line.get(l) , line.get(l)) &amp;&amp; !comp(p-&gt;line.get(r) ,line.get(r))){
+      p-&gt;line = line;
+      return p;
+    }
+    T mid = (l + r) / 2;
+    if(comp(line.get(mid) , p-&gt;line.get(mid))) swap(p-&gt;line , line);
+    if(comp(line.get(l) , p-&gt;line.get(l))){
+      p-&gt;lhs = insert(p-&gt;lhs , l , mid , line);
+    }
+    else{
+      p-&gt;rhs = insert(p-&gt;rhs , mid, r , line);
+    }
+    return p;
+  }
+ 
+  void add_line(T a,T b){
+    Line l(a , b);
+    root = insert(root,MI,MA,l);
+  }
+ 
+  T get(Node * p,T l,T r,T t){
+    if(!p) return ide;
+    T mid = (l + r) / 2;
+    if(t &lt;= mid) return comp_get(p-&gt;line.get(t) , get(p-&gt;lhs , l, mid,t));
+    else return comp_get(p-&gt;line.get(t),get(p-&gt;rhs,mid ,r , t));
+  }
+ 
+  T get(T x){
+    return get(root,MI,MA,x);
+  }
+};
+</code></pre>
+<h1><a class="header" href="#math" id="math">Math</a></h1>
+<p>数学系を</p>
+<h1><a class="header" href="#convolution" id="convolution">Convolution</a></h1>
+<p>畳み込み <a href="http://kazuma8128.hatenablog.com/entry/2018/07/29/231819">参考 - 約数集合でのゼータ変換・メビウス変換的なやつと畳み込み</a></p>
+<h2><a class="header" href="#集合の畳み込みについて" id="集合の畳み込みについて">集合の畳み込みについて</a></h2>
+<p>\(A \subseteq B\) のとき, \( B \)は\( A \)の上位集合という. また\( A \)は\( B \)の下位集合という.</p>
+<p>上位集合について和を求める変換して互いをかけ合わせて逆変換をすると, 積集合(And)の個数が求められる.<br />
+下位集合について和を求める変換して互いをかけ合わせて逆変換をすると, 和集合(Or)の個数が求められる.</p>
+<p>例) <code>multiple_transform</code>(<code>i</code>について, <code>i</code>を約数に持つ<code>j</code>の<code>a[j]</code>の総和を求める --&gt; 上位集合)をして互いをかけ合わせて逆変換すると, 積集合(<code>gcd</code>についての畳み込み)がの個数が求められる.</p>
+<h2><a class="header" href="#transforms" id="transforms">Transforms</a></h2>
+<ul>
+<li><a href="math/convolution/./multiple_transform.html">Multiple Transform</a></li>
+</ul>
+<h1><a class="header" href="#multiple-transform" id="multiple-transform">Multiple Transform</a></h1>
+<p>約数幇助と呼ばれる. <a href="http://noshi91.hatenablog.com/entry/2018/12/27/121649">参考 - 高速ゼータ変換の約数版</a></p>
+<h3><a class="header" href="#spec-5" id="spec-5">Spec</a></h3>
+<p><code>i</code>について, <code>i</code>を約数に持つ<code>j</code>(上位集合)の<code>a[j]</code>の総和を求める. \( O(N \log{\log N}) \).<br />
+<code>inverse multiple transform</code>と共に使うと<code>gcd</code>に関する畳み込みができる. こんな感じ</p>
+<p>\[ h(z) = \sum_{\gcd(x, y) = z} {f(x) * g(y)} \]</p>
+<h3><a class="header" href="#code-5" id="code-5">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+
+template &lt;class T&gt;
+void multiple_transform(vector&lt;T&gt; &amp;a) {
+	int n = a.size();
+	vector&lt;bool&gt; sieve(n, true);
+	for (int p = 2; p &lt; n; ++p) {
+		if (sieve[p]) {
+			for (int k = (n - 1) / p; k != 0; --k) {
+				sieve[k * p] = false;
+				a[k] += a[k * p];
+			}
+		}
+	}
+	for (int i = 0; ++i != n;) {
+		a[i] += a[0];
+	}
+}
+
+template &lt;class T&gt;
+void inverse_multiple_transform(vector&lt;T&gt; &amp;a) {
+	int n = a.size();
+	vector&lt;bool&gt; sieve(n, true);
+	for (int i = 0; ++i != n;) {
+		a[i] -= a[0];
+	}
+	for (int p = 2; p &lt; n; ++p) {
+		if (sieve[p]) {
+			for (int k = 1; k * p &lt; n; ++k) {
+				sieve[k * p] = false;
+				a[k] -= a[k * p];
+			}
+		}
+	}
+}
+</code></pre>
+<h1><a class="header" href="#divisor-transform" id="divisor-transform">Divisor Transform</a></h1>
+<p>約数幇助と呼ばれる. <a href="http://noshi91.hatenablog.com/entry/2018/12/27/121649">参考 - 高速ゼータ変換の約数版</a></p>
+<h3><a class="header" href="#spec-6" id="spec-6">Spec</a></h3>
+<p><code>i</code>について, <code>i</code>の約数である<code>j</code>(下位集合)について<code>a[j]</code>の総和を求める. \( O(N \log{\log N}) \).<br />
+<code>inverse divisor transform</code>と共に使うと<code>lcm</code>に関する畳み込みができる. こんな感じ</p>
+<p>\[  h(z) = \sum_{ \operatorname{lcm} (x, y) = z } { f(x) * g(y) } \]</p>
+<h3><a class="header" href="#code-6" id="code-6">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+
+template &lt;class T&gt;
+void divisor_transform(vector&lt;T&gt; &amp;a) {
+	int n = a.size();
+	vector&lt;bool&gt; sieve(n, true);
+	for (int p = 2; p &lt; n; ++p) {
+		if (sieve[p]) {
+			for (int k = 1; k * p &lt; n; ++k) {
+				sieve[k * p] = false;
+				a[k * p] += a[k];
+			}
+		}
+	}
+	for (int i = 0; ++i != n;) {
+		a[i] += a[0];
+	}
+}
+
+template &lt;class T&gt;
+void inverse_divisor_transform(vector&lt;T&gt; &amp;a) {
+	int n = a.size();
+	vector&lt;bool&gt; sieve(n, true);
+	for (int i = 0; ++i != n;) {
+		a[i] -= a[0];
+	}
+	for (int p = 2; p &lt; n; ++p) {
+		if (sieve[p]) {
+			for (int k = (n - 1) / p; k != 0; --k) {
+				sieve[k * p] = false;
+				a[k * p] -= a[k];
+			}
+		}
+	}
+}
+
 </code></pre>
 
                     </main>
