@@ -4,8 +4,8 @@ using i64 = long long;
 
 struct dynamic_segment_tree {
   using T = i64;
-  T ide() { return 0ll; }
-  T ope(const T& a, const T& b) { return a + b; }
+  static T ide() { return 0ll; }
+  static T ope(const T& a, const T& b) { return a + b; }
 
   struct node {
     node* left;
