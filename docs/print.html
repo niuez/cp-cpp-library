@@ -86,7 +86,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div id="sidebar-scrollbox" class="sidebar-scrollbox">
-                <ol class="chapter"><li class="expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li></ol>
+                <ol class="chapter"><li class="expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/mod.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/segment_tree/mod.html"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="data_structures/segment_tree/segment_tree.html"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li></ol></li></ol></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -154,7 +154,105 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
-<p>ここにC++のライブラリをおいていきたい</p>
+<p>ここに競技プログラミング用のC++のライブラリをおいていきたい</p>
+<h1><a class="header" href="#data-structures" id="data-structures">Data Structures</a></h1>
+<p>いろいろ, あるよね</p>
+<h1><a class="header" href="#segment-trees" id="segment-trees">Segment Trees</a></h1>
+<ul>
+<li><a href="data_structures/segment_tree/./segment_tree.html">Segment Tree</a></li>
+</ul>
+<h1><a class="header" href="#segment-tree" id="segment-tree">Segment Tree</a></h1>
+<h3><a class="header" href="#spec" id="spec">Spec</a></h3>
+<ul>
+<li>
+<p><code>using T = ...</code></p>
+<ul>
+<li>Segment Treeに載せる型</li>
+</ul>
+</li>
+<li>
+<p><code>T ope(const T&amp; a, const T&amp; b)</code></p>
+<ul>
+<li>Tの演算を指定する</li>
+</ul>
+</li>
+<li>
+<p><code>T ide()</code></p>
+<ul>
+<li>Tの単位元を返す</li>
+</ul>
+</li>
+<li>
+<p><code>segment_tree(vector&lt;T&gt; init)</code></p>
+<ul>
+<li><code>init</code>からSegment Treeを構築する</li>
+<li>\( O(n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>update(i64 i, T x)</code></p>
+<ul>
+<li><code>i</code>番目の要素を<code>x</code>にする</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+<li>
+<p><code>get(i64 l, i64 r)</code></p>
+<ul>
+<li><code>[l, r)</code>の総和を求める</li>
+<li>\( O(\log n) \)</li>
+</ul>
+</li>
+</ul>
+<h3><a class="header" href="#code" id="code">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+ 
+struct segment_tree {
+  using T = i64;
+  T ope(const T&amp; a, const T&amp; b) {
+    return max(a, b);
+  }
+  T ide() { return -1e18; }
+ 
+  i64 n;
+  vector&lt;T&gt; node;
+ 
+  segment_tree(const vector&lt;T&gt;&amp; init) {
+    n = 1;
+    while(n &lt; init.size()) n *= 2;
+    node.resize(2 * n);
+    for(int i = 0;i &lt; init.size();i++) node[i + n] = init[i];
+    for(int i = n - 1; i &gt;= 1;i--) node[i] = ope(node[i * 2], node[i * 2 + 1]);
+  }
+ 
+  void update(i64 i, T x) {
+    i += n;
+    node[i] = x;
+    while(i &gt; 1) {
+      i = i / 2;
+      node[i] = ope(node[i * 2], node[i * 2 + 1]);
+    }
+  }
+  
+  /* [l, r) */
+  T get(i64 l, i64 r) {
+    T lx = ide();
+    T rx = ide();
+    l += n;
+    r += n - 1;
+    while(l &lt; r) {
+      if(l &amp; 1) { lx = ope(lx, node[l]); }
+      if(!(r &amp; 1)) { rx = ope(node[r], rx); }
+      l = (l + 1) &gt;&gt; 1;
+      r = (r - 1) &gt;&gt; 1;
+    }
+    if(l == r) { lx = ope(lx, node[l]); }
+    return ope(lx, rx);
+  }
+};
+</code></pre>
 
                     </main>
 
