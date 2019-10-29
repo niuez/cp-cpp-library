@@ -13,6 +13,7 @@
       - [EulerTour Path](./data_structures/trees/euler_tour_path.md)
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
+    - [Garner's Algorithm](./math/garner.md)
     - [Convolution](./math/convolution/index.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)
       - [Divisor Transform](./math/convolution/divisor_transform.md)
