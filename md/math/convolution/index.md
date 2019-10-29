@@ -14,3 +14,5 @@
 ## Transforms
 
 - [Multiple Transform](./multiple_transform.md)
+- [Divisor Transform](./divisor_transform.md)
+- [Fast Fourier Transform](./fast_fourier_transform.md)
