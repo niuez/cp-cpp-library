@@ -11,6 +11,7 @@
     - [Trees](./data_structures/trees/index.md)
       - [EulerTour Subtree](./data_structures/trees/euler_tour_subtree.md)
       - [EulerTour Path](./data_structures/trees/euler_tour_path.md)
+      - [Link Cut Tree](./data_structures/trees/link_cut_tree.md)
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
     - [Garner's Algorithm](./math/garner.md)
