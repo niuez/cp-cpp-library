@@ -20,3 +20,5 @@
       - [Fast Fourier Transform](./math/convolution/fast_fourier_transform.md)
       - [Number Theoretic Transform](./math/convolution/numeric_theoretic_transform.md)
   - [Geometry](./geometry/geometry.md)
+  - [Other](./other/index.md)
+    - [Grundy Number](./other/grundy.md)
