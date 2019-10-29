@@ -9,11 +9,12 @@ struct modint {
   constexpr i64 value() const noexcept { return a; }
   constexpr modint pow(i64 r) const noexcept {
     modint ans(1);
+    modint aa = *this;
     while(r) {
       if(r & 1) {
-        ans *= *this;
+        ans *= aa;
       }
-      ans *= ans;
+      aa *= aa;
       r >>= 1;
     }
     return ans;
