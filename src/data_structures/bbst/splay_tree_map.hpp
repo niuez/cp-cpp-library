@@ -158,7 +158,7 @@ public:
   i64 size() {
     return subsize(root);
   }
-  Key nth_node(size_t n) {
+  Key nth_node(i64 n) {
     node* z = root;
     while(z) {
       if(subsize(z->ch[0]) == n) {

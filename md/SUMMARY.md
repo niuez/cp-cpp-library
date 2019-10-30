@@ -15,6 +15,9 @@
     - [Union Find](./data_structures/union_find/index.md)
       - [Union Find](./data_structures/union_find/union_find.md)
       - [Persistent Union Find](./data_structures/union_find/persistent_union_find.md)
+    - [self-Balancing Binary Search Trees](./data_structures/bbst/index.md)
+      - [Splay Tree Array](./data_structures/bbst/splay_tree_array.md)
+      - [Splay Tree Map](./data_structures/bbst/splay_tree_map.md)
 
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
