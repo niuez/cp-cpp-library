@@ -11,6 +11,7 @@
     - [Trees](./data_structures/trees/index.md)
       - [EulerTour Subtree](./data_structures/trees/euler_tour_subtree.md)
       - [EulerTour Path](./data_structures/trees/euler_tour_path.md)
+      - [Heavy Light Decomposition](./data_structures/trees/heavy_light_decomposition.md)
       - [Link Cut Tree](./data_structures/trees/link_cut_tree.md)
     - [Union Find](./data_structures/union_find/index.md)
       - [Union Find](./data_structures/union_find/union_find.md)
@@ -18,6 +19,7 @@
     - [self-Balancing Binary Search Trees](./data_structures/bbst/index.md)
       - [Splay Tree Array](./data_structures/bbst/splay_tree_array.md)
       - [Splay Tree Map](./data_structures/bbst/splay_tree_map.md)
+      - [Persistent AVL Tree Array](./data_structures/bbst/persistent_avl_tree_array.md)
 
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
