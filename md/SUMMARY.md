@@ -13,6 +13,7 @@
       - [EulerTour Path](./data_structures/trees/euler_tour_path.md)
       - [Heavy Light Decomposition](./data_structures/trees/heavy_light_decomposition.md)
       - [Link Cut Tree](./data_structures/trees/link_cut_tree.md)
+      - [Top Tree](./data_structures/trees/toptree.md)
     - [Union Find](./data_structures/union_find/index.md)
       - [Union Find](./data_structures/union_find/union_find.md)
       - [Persistent Union Find](./data_structures/union_find/persistent_union_find.md)
