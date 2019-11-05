@@ -8,6 +8,8 @@
       - [Persistent Segment Tree](./data_structures/segment_tree/persistent_segment_tree.md)
       - [Dynamic Segment Tree](./data_structures/segment_tree/dynamic_segment_tree.md)
       - [Li-Chao Segment Tree](./data_structures/segment_tree/li_chao.md)
+    - [Heaps](./data_structures/heap/index.md)
+      - [Pairing Heap](./data_structures/heap/pairing_heap.md)
     - [Trees](./data_structures/trees/index.md)
       - [EulerTour Subtree](./data_structures/trees/euler_tour_subtree.md)
       - [EulerTour Path](./data_structures/trees/euler_tour_path.md)
