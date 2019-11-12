@@ -54,17 +54,19 @@ struct network : public graph<net_edge<C>> {
 };
 
 template<class C>
-C dinic_dfs(int v,network<C>& net, const vector<int>& level, C f) {
+C dinic_dfs(int v, network<C>& net, const vector<int>& level, C f, vector<int> iter) {
   if(v == net.t) return f;
   else {
     C now = f;
-    for(auto& e : net[v]) {
+    for(int& i = iter[v]; i < net[v].size(); i++) {
+      auto& e = net[v][i];
       if(e.cap > C() && level[e.to] > level[e.from]) {
         C c = min(now , e.cap);
         C d = dinic_dfs(e.to,net,level,c);
         e.cap -= d;
         net[e.to][e.rev] += d;
         now -= d;
+        if(now == 0) return f - now;
       }
     }
     return f - now;
