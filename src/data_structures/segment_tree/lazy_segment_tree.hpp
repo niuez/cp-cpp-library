@@ -20,9 +20,9 @@ struct lazy_segment_tree {
   lazy_segment_tree(const vector<T>& init) {
     n = 1;
     while(n < init.size()) n *= 2;
-    node.resize(2 * n - 1);
-    lazy.resize(2 * n - 1);
-    flag.resize(2 * n - 1);
+    node.resize(2 * n - 1, t_ide());
+    lazy.resize(2 * n - 1, l_ide());
+    flag.resize(2 * n - 1, false);
     for(int i = 0;i < init.size();i++) node[i + n - 1] = init[i];
     for(int i = n - 2; i >= 0;i--) node[i] = ope(node[i * 2 + 1], node[i * 2 + 2]);
   }

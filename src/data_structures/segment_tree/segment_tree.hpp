@@ -15,7 +15,7 @@ struct segment_tree {
   segment_tree(const vector<T>& init) {
     n = 1;
     while(n < init.size()) n *= 2;
-    node.resize(2 * n);
+    node.resize(2 * n, ide());
     for(int i = 0;i < init.size();i++) node[i + n] = init[i];
     for(int i = n - 1; i >= 1;i--) node[i] = ope(node[i * 2], node[i * 2 + 1]);
   }
