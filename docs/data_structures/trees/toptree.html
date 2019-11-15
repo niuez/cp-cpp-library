@@ -1,0 +1,970 @@
+<!DOCTYPE HTML>
+<html lang="ja" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Top Tree - cp-cpp-library Document</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+        <!-- MathJax -->
+        <script async type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="../../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/index.html"><strong aria-hidden="true">1.1.</strong> Data Structures</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/index.html"><strong aria-hidden="true">1.1.1.</strong> Segment Trees</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/segment_tree/segment_tree.html"><strong aria-hidden="true">1.1.1.1.</strong> Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/lazy_segment_tree.html"><strong aria-hidden="true">1.1.1.2.</strong> Lazy Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/persistent_segment_tree.html"><strong aria-hidden="true">1.1.1.3.</strong> Persistent Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/dynamic_segment_tree.html"><strong aria-hidden="true">1.1.1.4.</strong> Dynamic Segment Tree</a></li><li class="expanded "><a href="../../data_structures/segment_tree/li_chao.html"><strong aria-hidden="true">1.1.1.5.</strong> Li-Chao Segment Tree</a></li></ol></li><li class="expanded "><a href="../../data_structures/heap/index.html"><strong aria-hidden="true">1.1.2.</strong> Heaps</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/heap/pairing_heap.html"><strong aria-hidden="true">1.1.2.1.</strong> Pairing Heap</a></li></ol></li><li class="expanded "><a href="../../data_structures/trees/index.html"><strong aria-hidden="true">1.1.3.</strong> Trees</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/trees/euler_tour_subtree.html"><strong aria-hidden="true">1.1.3.1.</strong> EulerTour Subtree</a></li><li class="expanded "><a href="../../data_structures/trees/euler_tour_path.html"><strong aria-hidden="true">1.1.3.2.</strong> EulerTour Path</a></li><li class="expanded "><a href="../../data_structures/trees/heavy_light_decomposition.html"><strong aria-hidden="true">1.1.3.3.</strong> Heavy Light Decomposition</a></li><li class="expanded "><a href="../../data_structures/trees/link_cut_tree.html"><strong aria-hidden="true">1.1.3.4.</strong> Link Cut Tree</a></li><li class="expanded "><a href="../../data_structures/trees/toptree.html" class="active"><strong aria-hidden="true">1.1.3.5.</strong> Top Tree</a></li></ol></li><li class="expanded "><a href="../../data_structures/union_find/index.html"><strong aria-hidden="true">1.1.4.</strong> Union Find</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/union_find/union_find.html"><strong aria-hidden="true">1.1.4.1.</strong> Union Find</a></li><li class="expanded "><a href="../../data_structures/union_find/persistent_union_find.html"><strong aria-hidden="true">1.1.4.2.</strong> Persistent Union Find</a></li></ol></li><li class="expanded "><a href="../../data_structures/bbst/index.html"><strong aria-hidden="true">1.1.5.</strong> self-Balancing Binary Search Trees</a></li><li><ol class="section"><li class="expanded "><a href="../../data_structures/bbst/splay_tree_array.html"><strong aria-hidden="true">1.1.5.1.</strong> Splay Tree Array</a></li><li class="expanded "><a href="../../data_structures/bbst/splay_tree_map.html"><strong aria-hidden="true">1.1.5.2.</strong> Splay Tree Map</a></li><li class="expanded "><a href="../../data_structures/bbst/persistent_avl_tree_array.html"><strong aria-hidden="true">1.1.5.3.</strong> Persistent AVL Tree Array</a></li></ol></li></ol></li><li class="expanded "><a href="../../math/index.html"><strong aria-hidden="true">1.2.</strong> Math</a></li><li><ol class="section"><li class="expanded "><a href="../../math/modint.html"><strong aria-hidden="true">1.2.1.</strong> modint</a></li><li class="expanded "><a href="../../math/matrix.html"><strong aria-hidden="true">1.2.2.</strong> Matrix</a></li><li class="expanded "><a href="../../math/garner.html"><strong aria-hidden="true">1.2.3.</strong> Garner's Algorithm</a></li><li class="expanded "><a href="../../math/polynomial.html"><strong aria-hidden="true">1.2.4.</strong> Polynomial</a></li><li class="expanded "><a href="../../math/runtime_fp.html"><strong aria-hidden="true">1.2.5.</strong> Runtime fp</a></li><li class="expanded "><a href="../../math/convolution/index.html"><strong aria-hidden="true">1.2.6.</strong> Convolution</a></li><li><ol class="section"><li class="expanded "><a href="../../math/convolution/multiple_transform.html"><strong aria-hidden="true">1.2.6.1.</strong> Multiple Transform</a></li><li class="expanded "><a href="../../math/convolution/divisor_transform.html"><strong aria-hidden="true">1.2.6.2.</strong> Divisor Transform</a></li><li class="expanded "><a href="../../math/convolution/fast_fourier_transform.html"><strong aria-hidden="true">1.2.6.3.</strong> Fast Fourier Transform</a></li><li class="expanded "><a href="../../math/convolution/numeric_theoretic_transform.html"><strong aria-hidden="true">1.2.6.4.</strong> Number Theoretic Transform</a></li></ol></li></ol></li><li class="expanded "><a href="../../string/index.html"><strong aria-hidden="true">1.3.</strong> String</a></li><li><ol class="section"><li class="expanded "><a href="../../string/manacher.html"><strong aria-hidden="true">1.3.1.</strong> Manacher</a></li><li class="expanded "><a href="../../string/mp.html"><strong aria-hidden="true">1.3.2.</strong> MP (Morris Pratt)</a></li><li class="expanded "><a href="../../string/rolling_hash.html"><strong aria-hidden="true">1.3.3.</strong> Rolling Hash</a></li><li class="expanded "><a href="../../string/suffix_array.html"><strong aria-hidden="true">1.3.4.</strong> Suffix Array</a></li><li class="expanded "><a href="../../string/Z-algorithm.html"><strong aria-hidden="true">1.3.5.</strong> Z-algorithm</a></li></ol></li><li class="expanded "><a href="../../graph/index.html"><strong aria-hidden="true">1.4.</strong> Graph</a></li><li><ol class="section"><li class="expanded "><a href="../../graph/low_link.html"><strong aria-hidden="true">1.4.1.</strong> Low Link</a></li><li class="expanded "><a href="../../graph/strongly_connected_components.html"><strong aria-hidden="true">1.4.2.</strong> Strongly Connected Components</a></li><li class="expanded "><a href="../../graph/two_edge_connected.html"><strong aria-hidden="true">1.4.3.</strong> Two Edge Connected</a></li><li class="expanded "><a href="../../graph/two_vertex_connected.html"><strong aria-hidden="true">1.4.4.</strong> Two Vertex Connected</a></li></ol></li><li class="expanded "><a href="../../geometry/geometry.html"><strong aria-hidden="true">1.5.</strong> Geometry</a></li><li class="expanded "><a href="../../other/index.html"><strong aria-hidden="true">1.6.</strong> Other</a></li><li><ol class="section"><li class="expanded "><a href="../../other/grundy.html"><strong aria-hidden="true">1.6.1.</strong> Grundy Number</a></li><li class="expanded "><a href="../../other/mongeDP.html"><strong aria-hidden="true">1.6.2.</strong> Monge DP</a></li><li class="expanded "><a href="../../other/slide_min.html"><strong aria-hidden="true">1.6.3.</strong> Slide Min</a></li></ol></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">cp-cpp-library Document</h1>
+
+                        <div class="right-buttons">
+                            <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#top-tree" id="top-tree">Top Tree</a></h1>
+<p>なにこれ</p>
+<h3><a class="header" href="#spec" id="spec">Spec</a></h3>
+<p>え</p>
+<h3><a class="header" href="#code" id="code">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;utility&gt;
+#include &lt;array&gt;
+#include &lt;cassert&gt;
+
+using i64 = long long;
+
+struct cluster {
+  i64 inter_weight;
+  i64 left_sum;
+  i64 right_sum;
+  i64 ans;
+  i64 length;
+
+  using V = std::size_t;
+  cluster(i64 l): inter_weight(0), ans(0), left_sum(0), right_sum(0), length(l) {}
+  cluster(i64 a, i64 b, i64 c, i64 d, i64 e): inter_weight(a), ans(b), left_sum(c), right_sum(d), length(e) {}
+  static cluster identity() {
+    return cluster(0);
+  }
+  static cluster compress(const cluster&amp; a, const cluster&amp; b, V av, V bv, V cv) {
+    return cluster(
+        a.inter_weight + b.inter_weight + cv,
+        a.right_sum + b.left_sum + a.length * av + b.length * bv,
+        a.left_sum + b.left_sum + a.length * (b.inter_weight + cv),
+        b.right_sum + a.right_sum + b.length * (a.inter_weight + cv),
+        a.length + b.length
+        );
+  }
+  static cluster rake(const cluster&amp; a, const cluster&amp; b, V av, V bv, V cv) {
+    return cluster(
+        a.inter_weight + b.inter_weight + bv,
+        0ll,
+        a.left_sum + b.right_sum + a.length * b.inter_weight + (a.length + b.length) * bv,
+        a.right_sum + b.right_sum + b.length * bv,
+        a.length
+        );
+  }
+  static cluster reverse(const cluster&amp; c) {
+    cluster res = c;
+    std::swap(res.left_sum, res.right_sum);
+    return res;
+  }
+  static std::size_t select(const cluster&amp; a, const cluster&amp; b, V av, V bv, V cv) {
+    if(a.inter_weight + av + cv &gt;= b.inter_weight + bv + cv) { return 0; }
+    else { return 1; }
+  }
+};
+
+class vertex;
+
+class node;
+int parent_dir(node*);
+node* link(vertex, vertex, cluster);
+void test_comp_set(node* n);
+
+class vertex_raw {
+  cluster::V val;
+  node* hand;
+
+public:
+
+  vertex_raw(cluster::V val): val(val), hand(nullptr) {}
+
+  node* handle() const { return this-&gt;hand; }
+  void set_handle(node* hand) { this-&gt;hand = hand; }
+  const cluster::V&amp; value() const { return this-&gt;val; }
+  void set_value(cluster::V val) {
+    this-&gt;val = val;
+  }
+};
+
+class vertex {
+  vertex_raw* ver;
+
+private:
+
+
+public:
+
+  static vertex dangling() { return vertex(); } 
+
+  vertex(): ver(nullptr) {}
+  vertex(cluster::V val): ver( new vertex_raw(val)) {
+    vertex dummy;
+    dummy.ver = new vertex_raw(cluster::V());
+    link(*this, dummy, cluster::identity());
+  }
+
+  bool operator==(const vertex&amp; other) { return this-&gt;ver == other.ver; }
+  
+  inline node* handle() const { return this-&gt;ver-&gt;handle(); }
+  inline void set_handle(node* hand) { this-&gt;ver-&gt;set_handle(hand); }
+  inline const cluster::V&amp; value() const { return this-&gt;ver-&gt;value(); }
+  inline void set_value(cluster::V val) { this-&gt;ver-&gt;set_value(val); }
+};
+
+enum class Type { Compress, Rake, Edge, None };
+
+static std::size_t ni = 0;
+extern node ns[1010101];
+
+class node {
+  node* ch[2];
+  node* par;
+  node* ra;
+  node* me;
+  bool rev;
+  cluster fo;
+  vertex v[2];
+  Type ty;
+
+
+
+public:
+
+  node(): par(nullptr), ra(nullptr), me(nullptr), rev(false),
+    fo(cluster::identity()), ty(Type::None) {} 
+
+
+
+  static node* new_edge(vertex v, vertex u, cluster val) {
+    //node* n = new node();
+    node* n = ns + (ni++);
+    n-&gt;v[0] = v;
+    n-&gt;v[1] = u;
+    n-&gt;fo = val;
+    n-&gt;me = n;
+    n-&gt;ty = Type::Edge;
+
+    n-&gt;fix();
+
+    return n;
+  }
+
+  static node* new_compress(node* left, node* right) {
+    //node* n = new node();
+    node* n = ns + (ni++);
+    n-&gt;ch[0] = left;
+    n-&gt;ch[1] = right;
+    n-&gt;me = n;
+    n-&gt;ty = Type::Compress;
+    n-&gt;fix();
+    return n;
+  }
+
+  static node* new_rake(node* left, node* right) {
+    //node * n = new node();
+    node* n = ns + (ni++);
+    n-&gt;ch[0] = left;
+    n-&gt;ch[1] = right;
+    n-&gt;me = n;
+    n-&gt;ty = Type::Rake;
+    n-&gt;fix();
+    return n;
+  }
+
+  inline void fix() {
+    if(this-&gt;ty == Type::Edge) {
+      if(!this-&gt;parent()) {
+        this-&gt;endpoint(0).set_handle(this-&gt;me);
+        this-&gt;endpoint(1).set_handle(this-&gt;me);
+      }
+      else if(this-&gt;parent()-&gt;ty == Type::Compress) {
+        if(parent_dir(this-&gt;me) == -1) {
+          this-&gt;endpoint(0).set_handle(this-&gt;me);
+        }
+      }
+      else if(this-&gt;parent()-&gt;ty == Type::Rake) {
+        this-&gt;endpoint(0).set_handle(this-&gt;me);
+      }
+    }
+    else if(this-&gt;ty == Type::Compress) {
+      this-&gt;push();
+      this-&gt;v[0] = this-&gt;child(0)-&gt;endpoint(0);
+      this-&gt;v[1] = this-&gt;child(1)-&gt;endpoint(1);
+      assert(this-&gt;child(0)-&gt;endpoint(1) == this-&gt;child(1)-&gt;endpoint(0));
+
+      cluster left = this-&gt;child(0)-&gt;fold();
+      node* l = this-&gt;child(0);
+      if(this-&gt;rake()) {
+        node* r = this-&gt;rake();
+        left = cluster::rake(l-&gt;fold(), r-&gt;fold(), l-&gt;endpoint(0).value(), r-&gt;endpoint(0).value(), l-&gt;endpoint(1).value());
+      }
+      node* r = this-&gt;child(1);
+      this-&gt;fo= cluster::compress(left, r-&gt;fold(),
+          l-&gt;endpoint(0).value(), r-&gt;endpoint(1).value(), l-&gt;endpoint(1).value());
+      
+      this-&gt;child(0)-&gt;endpoint(1).set_handle(this-&gt;me);
+
+      if(!this-&gt;parent()) {
+        this-&gt;endpoint(0).set_handle(this-&gt;me);
+        this-&gt;endpoint(1).set_handle(this-&gt;me);
+      }
+      else if(this-&gt;parent()-&gt;ty == Type::Compress) {
+        if(parent_dir(this-&gt;me) == -1) {
+          this-&gt;endpoint(0).set_handle(this-&gt;me);
+        }
+      }
+      else if(this-&gt;parent()-&gt;ty == Type::Rake) {
+        this-&gt;endpoint(0).set_handle(this-&gt;me);
+      }
+
+    }
+    else if(this-&gt;ty == Type::Rake) {
+      this-&gt;push();
+      this-&gt;v[0] = this-&gt;child(0)-&gt;endpoint(0);
+      this-&gt;v[1] = this-&gt;child(0)-&gt;endpoint(1);
+      this-&gt;fo = cluster::rake(this-&gt;child(0)-&gt;fold(), this-&gt;child(1)-&gt;fold(),
+          this-&gt;child(0)-&gt;endpoint(0).value(), this-&gt;child(1)-&gt;endpoint(0).value(), this-&gt;child(0)-&gt;endpoint(1).value());
+    }
+    else { assert(false); }
+  }
+
+  inline void push() {
+    if(this-&gt;ty == Type::Compress) {
+      if(this-&gt;rev) {
+        std::swap(this-&gt;ch[0], this-&gt;ch[1]);
+        this-&gt;child(0)-&gt;reverse();
+        this-&gt;child(1)-&gt;reverse();
+        this-&gt;rev = false;
+      }
+    }
+  }
+
+  inline void reverse() {
+    if(this-&gt;ty == Type::Edge) {
+      std::swap(this-&gt;v[0], this-&gt;v[1]);
+      this-&gt;fo = cluster::reverse(this-&gt;fold());
+    }
+    else if(this-&gt;ty == Type::Compress) {
+      std::swap(this-&gt;v[0], this-&gt;v[1]);
+      this-&gt;fo = cluster::reverse(this-&gt;fold());
+      this-&gt;rev ^= true;
+    }
+    else if(this-&gt;ty == Type::Rake) {
+    }
+    else { assert(false); }
+  }
+
+  inline node* parent() const { return this-&gt;par; }
+  inline void set_parent(node* par) { this-&gt;par = par; }
+  inline node* rake() const { return this-&gt;ra; }
+  inline void set_rake(node* rake) { this-&gt;ra = rake; }
+  inline node* child(std::size_t dir) const { return this-&gt;ch[dir]; }
+  inline void set_child(node* ch, std::size_t dir) { this-&gt;ch[dir] = ch; }
+  inline vertex endpoint(std::size_t dir) { return this-&gt;v[dir]; }
+  inline Type type() const { return this-&gt;ty; }
+
+  cluster fold() const { return this-&gt;fo; }
+
+  bool guard;
+};
+
+int parent_dir(node* child) {
+  node* par = child-&gt;parent();
+  if(par) {
+    if(par-&gt;guard) { return -1; }
+    else if(par-&gt;child(0) == child) { return 0; }
+    else if(par-&gt;child(1) == child) { return 1; }
+    else { return -1; }
+  }
+  else { return -1; }
+}
+
+int parent_dir_guard(node* child) {
+  node* par = child-&gt;parent();
+  if(par) {
+    if(par-&gt;child(0) == child) { return 0; }
+    else if(par-&gt;child(1) == child) { return 1; }
+    else { return -1; }
+  }
+  else { return -1; }
+}
+
+void rotate(node* t, node* x, std::size_t dir) {
+  node* y = x-&gt;parent();
+  int par = parent_dir_guard(x);
+  t-&gt;child(dir)-&gt;push();
+  x-&gt;set_child(t-&gt;child(dir), dir ^ 1);
+  t-&gt;child(dir)-&gt;set_parent(x);
+  t-&gt;set_child(x, dir);
+  x-&gt;set_parent(t);
+  t-&gt;set_parent(y);
+  if(par != -1) {
+    y-&gt;set_child(t, par);
+  }
+  else if(y &amp;&amp; y-&gt;type() == Type::Compress) {
+    y-&gt;set_rake(t);
+  }
+  x-&gt;fix();
+  t-&gt;fix();
+  if(y &amp;&amp; !y-&gt;guard) { y-&gt;fix(); }
+}
+
+void splay(node* t) {
+  assert(t-&gt;type() != Type::Edge);
+  t-&gt;push();
+
+  while(parent_dir(t) != -1) {
+    node* q = t-&gt;parent();
+    if(q-&gt;type() != t-&gt;type()) break;
+    if(parent_dir(q) != -1 &amp;&amp; q-&gt;parent() &amp;&amp; q-&gt;parent()-&gt;type() == q-&gt;type()) {
+      node* r = q-&gt;parent();
+      if(r-&gt;parent()) r-&gt;parent()-&gt;push();
+      r-&gt;push();
+      q-&gt;push();
+      t-&gt;push();
+      int qt_dir = parent_dir(t);
+      int rq_dir = parent_dir(q);
+      if(rq_dir == qt_dir) {
+        rotate(q, r, rq_dir ^ 1);
+        rotate(t, q, qt_dir ^ 1);
+      }
+      else {
+        rotate(t, q, qt_dir ^ 1);
+        rotate(t, r, rq_dir ^ 1);
+      }
+    }
+    else {
+      if(q-&gt;parent()) q-&gt;parent()-&gt;push();
+      q-&gt;push();
+      t-&gt;push();
+      int qt_dir = parent_dir(t);
+      rotate(t, q, qt_dir ^ 1);
+    }
+  }
+}
+
+node* expose_raw(node* t) {
+  while(true) {
+    assert(t-&gt;type() != Type::Rake);
+    if(t-&gt;type() == Type::Compress) {
+      splay(t);
+    }
+    node* n = nullptr;
+    {
+      node* par = t-&gt;parent();
+      if(!par) { break; }
+      else if(par-&gt;type() == Type::Rake) {
+        par-&gt;push();
+        splay(par);
+        n = par-&gt;parent();
+      }
+      else if(par-&gt;type() == Type::Compress) {
+        par-&gt;push();
+        if(par-&gt;guard &amp;&amp; parent_dir_guard(t) != -1) { break; }
+        n = par;
+      }
+      else { assert(false); }
+    }
+
+    splay(n);
+
+    
+    int dir = parent_dir_guard(n);
+    if(dir == -1 || n-&gt;parent()-&gt;type() == Type::Rake) dir = 0;
+    if(dir == 1) {
+      n-&gt;child(dir)-&gt;reverse();
+      n-&gt;child(dir)-&gt;push();
+      t-&gt;reverse();
+      t-&gt;push();
+    }
+    int n_dir = parent_dir(t);
+    if(n_dir != -1) {
+      node* nch = n-&gt;child(dir);
+      nch-&gt;push();
+      node* rake = t-&gt;parent();
+      rake-&gt;push();
+
+      rake-&gt;set_child(nch, n_dir);
+      nch-&gt;set_parent(rake);
+      n-&gt;set_child(t, dir);
+      t-&gt;set_parent(n);
+      nch-&gt;fix();
+      rake-&gt;fix();
+      t-&gt;fix();
+      n-&gt;fix();
+      splay(rake);
+    }
+    else {
+      node* nch = n-&gt;child(dir);
+      nch-&gt;push();
+      n-&gt;set_rake(nch);
+      nch-&gt;set_parent(n);
+      n-&gt;set_child(t, dir);
+      t-&gt;set_parent(n);
+
+      nch-&gt;fix();
+      t-&gt;fix();
+      n-&gt;fix();
+    }
+    if(t-&gt;type() == Type::Edge) {
+      t = n;
+    }
+  }
+  
+  return t;
+}
+
+node* expose(vertex ver) {
+  return expose_raw(ver.handle());
+}
+
+void soft_expose(vertex v, vertex u) {
+  node* root = expose(v);
+  if(v.handle() == u.handle()) {
+    if(root-&gt;endpoint(1) == v || root-&gt;endpoint(0) == u) {
+      root-&gt;reverse();
+      root-&gt;push();
+    }
+    return;
+  }
+  root-&gt;guard = true;
+  node* soot = expose(u);
+  root-&gt;guard = false;
+  root-&gt;fix();
+  if(parent_dir(soot) == 0) {
+    root-&gt;reverse();
+    root-&gt;push();
+  }
+}
+
+node* link(vertex v, vertex u, cluster weight) {
+  if(!v.handle() &amp;&amp; !u.handle()) {
+    return node::new_edge(v, u, weight);
+  }
+  else {
+    node* nnu = u.handle();
+    node* nnv = v.handle();
+    node* e = node::new_edge(v, u, weight);
+    node* left = nullptr;
+
+    if(!nnu) { left = e; }
+    else {
+      node* uu = expose_raw(nnu);
+      uu-&gt;push();
+      if(uu-&gt;endpoint(1) == u) {
+        uu-&gt;reverse();
+        uu-&gt;push();
+      }
+      if(uu-&gt;endpoint(0) == u) {
+        node* nu = node::new_compress(e, uu);
+        e-&gt;set_parent(nu);
+        e-&gt;fix();
+        uu-&gt;set_parent(nu);
+        uu-&gt;fix();
+        nu-&gt;fix();
+
+        left = nu;
+      }
+      else {
+        node* nu = uu;
+        node* left_ch = nu-&gt;child(0);
+        left_ch-&gt;push();
+
+        nu-&gt;set_child(e, 0);
+        e-&gt;set_parent(nu);
+        e-&gt;fix();
+        
+        node* beta = nu-&gt;rake();
+        node* rake = nullptr;
+        if(beta) {
+          beta-&gt;push();
+          rake = node::new_rake(beta, left_ch);
+          beta-&gt;set_parent(rake);
+          left_ch-&gt;set_parent(rake);
+          beta-&gt;fix();
+          left_ch-&gt;fix();
+        }
+        else {
+          rake = left_ch;
+        }
+        nu-&gt;set_rake(rake);
+        rake-&gt;set_parent(nu);
+        rake-&gt;fix();
+        nu-&gt;fix();
+
+        left = nu;
+      }
+    }
+
+    if(!nnv) {}
+    else {
+      node* vv =expose_raw(nnv);
+      vv-&gt;push();
+      if(vv-&gt;endpoint(0) == v) {
+        vv-&gt;reverse();
+        vv-&gt;push();
+      }
+      if(vv-&gt;endpoint(1) == v) {
+        node* top = node::new_compress(vv, left);
+        vv-&gt;set_parent(top);
+        left-&gt;set_parent(top);
+        vv-&gt;fix();
+        left-&gt;fix();
+        top-&gt;fix();
+      }
+      else {
+        node* nv = vv;
+        node* right_ch = nv-&gt;child(1);
+        right_ch-&gt;reverse();
+        right_ch-&gt;push();
+
+        nv-&gt;set_child(left, 1);
+        left-&gt;set_parent(nv);
+        left-&gt;fix();
+
+        node* alpha = nv-&gt;rake();
+        node* rake = nullptr;
+        if(alpha) {
+          alpha-&gt;push();
+          rake = node::new_rake(alpha, right_ch);
+          alpha-&gt;set_parent(rake);
+          alpha-&gt;fix();
+          right_ch-&gt;set_parent(rake);
+          right_ch-&gt;fix();
+        }
+        else {
+          rake = right_ch;
+        }
+        nv-&gt;set_rake(rake);
+        rake-&gt;set_parent(nv);
+        rake-&gt;fix();
+        nv-&gt;fix();
+      }
+    }
+
+    return e;
+  }
+}
+
+void bring(node* root) {
+  node* rake = root-&gt;rake();
+
+  if(!rake) {
+    node* left = root-&gt;child(0);
+    //delete root, root = nullptr;
+    left-&gt;set_parent(nullptr);
+    left-&gt;fix();
+  }
+  else if(rake-&gt;type() == Type::Compress || rake-&gt;type() == Type::Edge) {
+    rake-&gt;push();
+    node* new_right = rake;
+    new_right-&gt;reverse();
+    new_right-&gt;push();
+
+    root-&gt;set_child(new_right, 1);
+    new_right-&gt;set_parent(root);
+
+    root-&gt;set_rake(nullptr);
+
+    new_right-&gt;fix();
+    root-&gt;fix();
+  }
+  else if(rake-&gt;type() == Type::Rake) {
+    rake-&gt;push();
+    while(rake-&gt;child(1)-&gt;type() == Type::Rake) {
+      rake-&gt;child(1)-&gt;push();
+      rake = rake-&gt;child(1);
+    }
+    root-&gt;guard = true;
+    splay(rake);
+    root-&gt;guard = false;
+
+    node* new_rake = rake-&gt;child(0);
+    node* new_right = rake-&gt;child(1);
+
+    //delete rake, rake = nullptr;
+    new_right-&gt;reverse();
+    new_right-&gt;push();
+
+    root-&gt;set_child(new_right, 1);
+    new_right-&gt;set_parent(root);
+
+    root-&gt;set_rake(new_rake);
+    new_rake-&gt;set_parent(root);
+
+    new_rake-&gt;fix();
+    new_right-&gt;fix();
+    root-&gt;fix();
+  }
+}
+
+void cut(vertex v, vertex u) {
+  soft_expose(v, u);
+  node* root = v.handle();
+  root-&gt;push();
+  node* right = root-&gt;child(1);
+  right-&gt;set_parent(nullptr);
+
+  right-&gt;reverse();
+  right-&gt;push();
+
+  bring(right);
+  bring(root);
+}
+
+cluster path_query(vertex v, vertex u) {
+  soft_expose(v, u);
+  node* root = v.handle();
+  root-&gt;push();
+  if(root-&gt;endpoint(0) == v &amp;&amp; root-&gt;endpoint(1) == u) {
+    return root-&gt;fold();
+  }
+  else if(root-&gt;endpoint(0) == v) {
+    return root-&gt;child(0)-&gt;fold();
+  }
+  else if(root-&gt;endpoint(1) == u) {
+    return root-&gt;child(1)-&gt;fold();
+  }
+  else {
+    root-&gt;child(1)-&gt;push();
+    return root-&gt;child(1)-&gt;child(0)-&gt;fold();
+  }
+}
+
+node* select_rake(node* rake, cluster&amp; right, cluster::V&amp; rv0, cluster::V&amp; rv1) {
+  rake-&gt;push();
+  while(rake-&gt;type() == Type::Rake) {
+    node* l = rake-&gt;child(0);
+    node* r = rake-&gt;child(1);
+    l-&gt;push();
+    r-&gt;push();
+
+    cluster rf = cluster::rake(r-&gt;fold(), right, r-&gt;endpoint(0).value(), rv0, r-&gt;endpoint(1).value());
+    cluster::V r0 = r-&gt;endpoint(0).value();
+
+    std::size_t dir = cluster::select(l-&gt;fold(), rf, l-&gt;endpoint(0).value(), r0, l-&gt;endpoint(1).value());
+    r = rake-&gt;child(1 - dir);
+    rake = rake-&gt;child(dir);
+
+
+    right = cluster::rake(r-&gt;fold(), right, r-&gt;endpoint(0).value(), rv0, r-&gt;endpoint(1).value());
+    rv0 = r-&gt;endpoint(0).value();
+    rv1 = r-&gt;endpoint(1).value();
+
+    rake-&gt;push();
+  }
+  return rake;
+}
+
+std::pair&lt;vertex, vertex&gt; select(vertex v) {
+  node* n = expose(v);
+  cluster lf = cluster::identity();
+  cluster::V l0, l1;
+  bool luse = false;
+  cluster rf = cluster::identity();
+  cluster::V r0, r1;
+  bool ruse = false;
+
+  n-&gt;push();
+  while(n-&gt;type() == Type::Compress) {
+    node* a = n-&gt;child(0);
+    node* b = n-&gt;child(1);
+    node* r = n-&gt;rake();
+    a-&gt;push();
+    b-&gt;push();
+    if(r) { r-&gt;push(); }
+
+    cluster af = a-&gt;fold();
+    cluster::V a0 = a-&gt;endpoint(0).value();
+    cluster::V a1 = a-&gt;endpoint(1).value();
+    if(luse) {
+      af = cluster::compress(lf, af, l0, a1, l1);
+      a0 = l0;
+      a1 = a1;
+    }
+    cluster bf = b-&gt;fold();
+    cluster::V b0 = b-&gt;endpoint(0).value();
+    cluster::V b1 = b-&gt;endpoint(1).value();
+    if(ruse) {
+      bf = cluster::compress(bf, rf, b0, r1, b1);
+      b0 = b0;
+      b1 = r1;
+    }
+    cluster arf = af;
+    if(r) {
+      arf = cluster::rake(af, r-&gt;fold(), a0, r-&gt;endpoint(0).value(), a1);
+    }
+
+    std::size_t dir = cluster::select(arf, bf, a0, b1, a1);
+    
+    if(dir == 0) {
+      if(r) {
+        cluster rbf = cluster::reverse(bf);
+        cluster::V rb0 = b1;
+
+        cluster rrf = cluster::rake(r-&gt;fold(), rbf, r-&gt;endpoint(0).value(), rb0, r-&gt;endpoint(1).value());
+        cluster::V rr0 = r-&gt;endpoint(0).value();
+        cluster::V rr1 = r-&gt;endpoint(1).value();
+
+        dir = cluster::select(af, rrf, a0, rr0, a1);
+        if(dir == 0) {
+          rf = cluster::reverse(rrf);
+          r0 = rr1;
+          r1 = rr0;
+          ruse = true;
+          n = n-&gt;child(0);
+        }
+        else {
+          luse = false;
+          rf = cluster::rake(af, rbf, a0, rb0, a1);
+          r0 = a0;
+          r1 = a1;
+          ruse = true;
+          n = select_rake(r, rf, r0, r1);
+          rf = cluster::reverse(rf);
+          std::swap(r0, r1);
+        }
+      }
+      else {
+        rf = bf;
+        r0 = b0;
+        r1 = b1;
+        ruse = true;
+        n = n-&gt;child(0);
+      }
+    }
+    else {
+      lf = arf;
+      l0 = a0;
+      l1 = a1;
+      luse = true;
+      n = n-&gt;child(1);
+    }
+
+    n-&gt;push();
+  }
+  return { n-&gt;endpoint(0), n-&gt;endpoint(1) };
+}
+
+node ns[1010101];
+
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;tuple&gt;
+
+using namespace std;
+
+
+int main() {
+}
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../../data_structures/trees/link_cut_tree.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../../data_structures/union_find/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../../data_structures/trees/link_cut_tree.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../../data_structures/union_find/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="../../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
