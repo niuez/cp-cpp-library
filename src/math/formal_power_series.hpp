@@ -9,11 +9,12 @@ struct modint {
   constexpr i64 value() const noexcept { return a; }
   constexpr modint pow(i64 r) const noexcept {
     modint ans(1);
+    modint aa = *this;
     while(r) {
       if(r & 1) {
-        ans *= *this;
+        ans *= aa;
       }
-      ans *= ans;
+      aa *= aa;
       r >>= 1;
     }
     return ans;
@@ -60,6 +61,11 @@ struct modint {
   constexpr modint operator/(const modint r) const {
     return modint(*this) /= r;
   }
+
+  constexpr bool operator!=(const modint r) const {
+    return this->value() != r.value();
+  }
+
 };
 
 constexpr i64 NTT_PRIMES[][2] = {
@@ -144,7 +150,8 @@ struct FPS {
   
   FPS(const std::vector<T>& arr): coef(arr) {
     i64 n = 1;
-    while(n < arr.size()) n <<= 1;
+    i64 m = arr.size();
+    while(n < m) n <<= 1;
     coef.resize(n);
   }
   size_t size() const { return coef.size(); }
@@ -158,7 +165,8 @@ struct FPS {
     for(int i = 0;i < coef.size() && i < n; i++) nex[i] = coef[i];
     return FPS(nex);
   }
-
+  
+  // F(0) must not be 0
   FPS inv() const {
     FPS g = FPS(std::vector<T>{ T(1) / (*this)[0] });
     i64 n = this->size();
@@ -180,11 +188,38 @@ struct FPS {
             )
           );
       for(int j = 0;j < i;j++) {
-        e[j] = g[j];
+        f[j] = g[j];
       }
-      g.coef = std::move(e);
+      g.coef = std::move(f);
     }
     return g.pre(n);
+  }
+
+  FPS diff() const {
+    FPS res(vector<T>(this->size() - 1, T(0)));
+    for(i64 i = 1;i < this->size();i++) res[i - 1] = coef[i] * T(i);
+    return res;
+  }
+
+  FPS integral() const {
+    FPS res(vector<T>(this->size() + 1, T(0)));
+    for(i64 i = 0;i < this->size();i++) res[i + 1] = coef[i] / T(i + 1);
+    return res;
+  }
+
+  // F(0) must be 0
+  FPS log() const {
+    return (this->diff() * this->inv()).integral().pre(this->size());
+  }
+
+  FPS exp() const {
+    FPS f(vector<T>{ T(1) });
+    FPS g = *this;
+    g[0] += T(1);
+    for(i64 i = 1;i < size();i <<= 1 ) {
+      f = (f * (g.pre(i << 1) - f.pre(i << 1).log())).pre(i << 1);
+    }
+    return f;
   }
   
   FPS operator+(const FPS& rhs) {
@@ -207,4 +242,6 @@ struct FPS {
           )
         );
   }
+
 };
+
