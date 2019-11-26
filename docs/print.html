@@ -3039,13 +3039,52 @@ struct modint {
 
 </code></pre>
 <h1><a class="header" href="#matrix" id="matrix">Matrix</a></h1>
+<p>行列演算</p>
+<h3><a class="header" href="#code-15" id="code-15">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+#define rep(i,s,e) for(i64 (i) = (s);(i) &lt; (e);(i)++)
+#define rev(i,s,e) for(i64 (i) = (s);(i) --&gt; (e);)
+#define all(x) x.begin(),x.end()
+ 
+template&lt;class T, const i64 N, const i64 M&gt;
+struct matrix {
+  vector&lt;vector&lt;T&gt;&gt; mat;
+  matrix(T init = T()): mat(N, vector&lt;T&gt;(M, init)) {}
+  vector&lt;T&gt;&amp; operator[](i64 i) { return mat[i]; }
+  const vector&lt;T&gt;&amp; operator[](i64 i) const { return mat[i]; }
+  static matrix&lt;T, N, N&gt; E() {
+    matrix&lt;T, N, N&gt; mat(0);
+    rep(i,0,N) mat[i][i] = 1;
+    return mat;
+  }
+};
+template&lt;class T, const i64 L, const i64 M, const i64 N&gt;
+matrix&lt;T, L, N&gt; operator*(const matrix&lt;T, L, M&gt;&amp; lm, const matrix&lt;T, M, N&gt;&amp; rm) {
+  matrix&lt;T, L, N&gt; ret;
+  rep(i, 0, L) rep(j, 0, M) rep(k, 0, N) (ret[i][k] += lm[i][j] * rm[j][k]);
+  return ret;
+}
+ 
+template&lt;class T, const i64 N&gt;
+matrix&lt;T, N, N&gt; matrix_pow(matrix&lt;T, N, N&gt; mat, i64 r) {
+  matrix&lt;T, N, N&gt; ret = matrix&lt;T, N, N&gt;::E();
+  while(r &gt; 0) {
+    if(r &amp; 1) ret = ret * mat;
+    mat = mat * mat;
+    r &gt;&gt;= 1;
+  }
+  return ret;
+}
+</code></pre>
 <h1><a class="header" href="#garners-algorithm" id="garners-algorithm">Garner's Algorithm</a></h1>
 <p>FPSで使う</p>
 <h3><a class="header" href="#spec-15" id="spec-15">Spec</a></h3>
 <p>\(m_0, \cdots, m_{k-1} \)が互いに素とする.<br />
 \( x &lt; \prod{m_i} \)を満たす\( x \)について, \( x \mod m_i \)がわかっている時,<br />
 \( O(k^2 + k \log m) \)で \( x \mod M \) を求めることができる.</p>
-<h3><a class="header" href="#code-15" id="code-15">Code</a></h3>
+<h3><a class="header" href="#code-16" id="code-16">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -3101,7 +3140,7 @@ i64 garner(const vector&lt;i64&gt; &amp;x, vector&lt;i64&gt; mods, i64 mod) {
 <p><code>i</code>について, <code>i</code>を約数に持つ<code>j</code>(上位集合)の<code>a[j]</code>の総和を求める. \( O(N \log{\log N}) \).<br />
 <code>inverse multiple transform</code>と共に使うと<code>gcd</code>に関する畳み込みができる. こんな感じ</p>
 <p>\[ h(z) = \sum_{\gcd(x, y) = z} {f(x) * g(y)} \]</p>
-<h3><a class="header" href="#code-16" id="code-16">Code</a></h3>
+<h3><a class="header" href="#code-17" id="code-17">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -3146,7 +3185,7 @@ void inverse_multiple_transform(vector&lt;T&gt; &amp;a) {
 <p><code>i</code>について, <code>i</code>の約数である<code>j</code>(下位集合)について<code>a[j]</code>の総和を求める. \( O(N \log{\log N}) \).<br />
 <code>inverse divisor transform</code>と共に使うと<code>lcm</code>に関する畳み込みができる. こんな感じ</p>
 <p>\[  h(z) = \sum_{ \operatorname{lcm} (x, y) = z } { f(x) * g(y) } \]</p>
-<h3><a class="header" href="#code-17" id="code-17">Code</a></h3>
+<h3><a class="header" href="#code-18" id="code-18">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -3190,7 +3229,7 @@ void inverse_divisor_transform(vector&lt;T&gt; &amp;a) {
 <h3><a class="header" href="#spec-18" id="spec-18">Spec</a></h3>
 <p>離散フーリエ変換(discrete Fourier transformation)を\( O(n \log n) \)で行う.</p>
 <p>誤差厳しい, 整数ならNTT使おう(誤差をなくすようにFFTするのもあるらしい)</p>
-<h3><a class="header" href="#code-18" id="code-18">Code</a></h3>
+<h3><a class="header" href="#code-19" id="code-19">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;iostream&gt;
 #include &lt;complex&gt;
@@ -3240,7 +3279,7 @@ vector&lt;complex&lt;double&gt;&gt; inverse_fast_fourier_transform(vector&lt;com
 <p>素数\( m = 2^k + 1, 2^k &gt;= n\)として\(F_m \)剰余環上での離散フーリエ変換(discrete Fourier transformation)を\( O(n \log n) \)で行う<br />
 <code>NTT_PRIMES</code>は<a href="https://lumakernel.github.io/ecasdqina/math/FFT/NTT">るまライブラリ</a>からお借りしています</p>
 <p>ほとんど単体でNTTを使うことはなさそう(FPSで使うね)</p>
-<h3><a class="header" href="#code-19" id="code-19">Code</a></h3>
+<h3><a class="header" href="#code-20" id="code-20">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -3383,7 +3422,7 @@ vector&lt;modint&lt;mod&gt;&gt; inverse_number_theoretic_transform(vector&lt;mod
 <pre><code>aabaabaaa
 _010123452
 </code></pre>
-<h3><a class="header" href="#code-20" id="code-20">Code</a></h3>
+<h3><a class="header" href="#code-21" id="code-21">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -3429,7 +3468,7 @@ vector&lt;i64&gt; mp(string S) {
 </ul>
 </li>
 </ul>
-<h3><a class="header" href="#code-21" id="code-21">Code</a></h3>
+<h3><a class="header" href="#code-22" id="code-22">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;algorithm&gt;
 #include &lt;cmath&gt;
 #include &lt;tuple&gt;
@@ -3598,7 +3637,7 @@ namespace Geometory {
 </ul>
 </li>
 </ul>
-<h3><a class="header" href="#code-22" id="code-22">Code</a></h3>
+<h3><a class="header" href="#code-23" id="code-23">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -3634,7 +3673,7 @@ struct Compression {
 <li><code>grn[(ゲームの状態)]</code>が<code>0</code> -&gt; その状態での手番の人が負ける</li>
 <li><code>grn[(ゲームの状態)]</code>が<code>0</code>以外 -&gt; その状態での手番の人が勝つ</li>
 </ul>
-<h3><a class="header" href="#code-23" id="code-23">Code</a></h3>
+<h3><a class="header" href="#code-24" id="code-24">Code</a></h3>
 <p>このコードでは, 取れる個数に制限がついているNimの勝敗を計算している.</p>
 <pre><code class="language-cpp">/*
  N個の正整数からなる集合 A={a1,a2,…,aN}があります。 太郎君と次郎君が次のゲームで勝負します。
@@ -3681,7 +3720,7 @@ int main() {
 <h1><a class="header" href="#monge-dp" id="monge-dp">Monge DP</a></h1>
 <h1><a class="header" href="#mos-algorithm" id="mos-algorithm">Mo's Algorithm</a></h1>
 <p>もーもー</p>
-<h3><a class="header" href="#code-24" id="code-24">Code</a></h3>
+<h3><a class="header" href="#code-25" id="code-25">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
