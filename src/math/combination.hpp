@@ -12,7 +12,7 @@ struct combination {
     fact[0] = T(1);
     for(i64 i = 1;i < n;i++)
       fact[i] = fact[i - 1] * T(i);
-    inv[n - 1] = T(1) / fact(n - 1);
+    inv[n - 1] = T(1) / fact[n - 1];
     for(i64 i = n - 1;i --> 0;)
       inv[i] = inv[i + 1] * T(i + 1);
   }
