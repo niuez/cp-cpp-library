@@ -27,9 +27,9 @@ struct sparse_table {
       }
     }
   }
-  /* [s, t] */
+  /* [s, t) */
   Band query(i64 s, i64 t) {
-    i64 k = log_t[t - s + 1];
-    return ope(table[s][k], table[t - (1 << k) + 1][k]);
+    i64 k = log_t[t - s];
+    return ope(table[s][k], table[t - (1 << k)][k]);
   }
 };
