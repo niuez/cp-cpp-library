@@ -15,4 +15,6 @@
 
 ## Code
 
+```cpp
 {{ ../../../src/data_structures/union_find/union_find.hpp }}
+```
