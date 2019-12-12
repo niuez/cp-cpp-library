@@ -152,6 +152,45 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#matrix" id="matrix">Matrix</a></h1>
+<p>行列演算</p>
+<h3><a class="header" href="#code" id="code">Code</a></h3>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+using i64 = long long;
+#define rep(i,s,e) for(i64 (i) = (s);(i) &lt; (e);(i)++)
+#define rev(i,s,e) for(i64 (i) = (s);(i) --&gt; (e);)
+#define all(x) x.begin(),x.end()
+ 
+template&lt;class T, const i64 N, const i64 M&gt;
+struct matrix {
+  vector&lt;vector&lt;T&gt;&gt; mat;
+  matrix(T init = T()): mat(N, vector&lt;T&gt;(M, init)) {}
+  vector&lt;T&gt;&amp; operator[](i64 i) { return mat[i]; }
+  const vector&lt;T&gt;&amp; operator[](i64 i) const { return mat[i]; }
+  static matrix&lt;T, N, N&gt; E() {
+    matrix&lt;T, N, N&gt; mat(0);
+    rep(i,0,N) mat[i][i] = 1;
+    return mat;
+  }
+};
+template&lt;class T, const i64 L, const i64 M, const i64 N&gt;
+matrix&lt;T, L, N&gt; operator*(const matrix&lt;T, L, M&gt;&amp; lm, const matrix&lt;T, M, N&gt;&amp; rm) {
+  matrix&lt;T, L, N&gt; ret;
+  rep(i, 0, L) rep(j, 0, M) rep(k, 0, N) (ret[i][k] += lm[i][j] * rm[j][k]);
+  return ret;
+}
+ 
+template&lt;class T, const i64 N&gt;
+matrix&lt;T, N, N&gt; matrix_pow(matrix&lt;T, N, N&gt; mat, i64 r) {
+  matrix&lt;T, N, N&gt; ret = matrix&lt;T, N, N&gt;::E();
+  while(r &gt; 0) {
+    if(r &amp; 1) ret = ret * mat;
+    mat = mat * mat;
+    r &gt;&gt;= 1;
+  }
+  return ret;
+}
+</code></pre>
 
                     </main>
 

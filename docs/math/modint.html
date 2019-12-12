@@ -253,6 +253,11 @@ struct modint {
   }
 };
 
+template&lt;const i64 M&gt;
+std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const modint&lt;M&gt;&amp; m) {
+  os &lt;&lt; m.value();
+  return os;
+}
 </code></pre>
 
                     </main>
