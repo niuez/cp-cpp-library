@@ -33,7 +33,7 @@
     - [modint](./math/modint.md)
     - [Matrix](./math/matrix.md)
     - [Garner's Algorithm](./math/garner.md)
-    - [Polynomial](./math/polynomial.md)
+    - [Formal Power Series](./math/formal_power_series.md)
     - [Runtime fp](./math/runtime_fp.md)
     - [Convolution](./math/convolution/index.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)
