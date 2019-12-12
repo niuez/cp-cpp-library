@@ -11,16 +11,16 @@ struct partially_persistent_union_find {
     for(auto & vs: add) vs.push_back({ -1, -1 });
   }
 
-  bool unite(i64 t, i64 x, i64 y) {
+  i64 unite(i64 t, i64 x, i64 y) {
     x = find(t, x);
     y = find(t, y);
-    if(x == y) return false;
+    if(x == y) return -1;
     if(data[x] > data[y]) swap(x, y);
     data[x] += data[y];
     add[x].push_back({t, data[x]});
     data[y] = x;
     last[y] = t;
-    return true;
+    return x;
   }
 
   i64 find(i64 t, i64 x) {
@@ -28,7 +28,7 @@ struct partially_persistent_union_find {
     return find(t, data[x]);
   }
 
-  i64 isze(i64 t, i64 x) {
+  i64 size(i64 t, i64 x) {
     x = find(t, x);
     return -prev(lower_bound(begin(add[x]), end(add[x]), make_pair(t, 0ll)))->second;
   }
