@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/graph/strongly_connected_components.hpp }}
+{{#include ../../src/graph/strongly_connected_components.hpp }}
 ```

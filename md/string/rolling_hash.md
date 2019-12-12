@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/string/rolling_hash.hpp }}
+{{#include ../../src/string/rolling_hash.hpp }}
 ```

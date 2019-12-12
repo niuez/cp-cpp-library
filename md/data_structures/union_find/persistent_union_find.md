@@ -20,5 +20,5 @@
 ## Code
 
 ```cpp
-{{ ../../../src/data_structures/union_find/persistent_union_find.hpp }}
+{{#include ../../../src/data_structures/union_find/persistent_union_find.hpp }}
 ```

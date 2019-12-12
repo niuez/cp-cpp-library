@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../../src/graph/max_flow/dinic.hpp }}
+{{#include ../../../src/graph/max_flow/dinic.hpp }}
 ```

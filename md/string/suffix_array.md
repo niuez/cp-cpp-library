@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/string/suffix_array.hpp }}
+{{#include ../../src/string/suffix_array.hpp }}
 ```

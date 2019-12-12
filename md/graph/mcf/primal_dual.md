@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../../src/graph/mcf/primal_dual.hpp }}
+{{#include ../../../src/graph/mcf/primal_dual.hpp }}
 ```

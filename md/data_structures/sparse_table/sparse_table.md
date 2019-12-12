@@ -14,5 +14,5 @@
 ## Code
 
 ```cpp
-{{ ../../../src/data_structures/sparse_table/sparse_table.hpp }}
+{{#include ../../../src/data_structures/sparse_table/sparse_table.hpp }}
 ```

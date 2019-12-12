@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/graph/gabow_e_algorithm.hpp }}
+{{#include ../../src/graph/gabow_e_algorithm.hpp }}
 ```

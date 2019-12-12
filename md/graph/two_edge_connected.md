@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/graph/two_edge_connected.hpp }}
+{{#include ../../src/graph/two_edge_connected.hpp }}
 ```

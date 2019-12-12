@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/graph/low_link.hpp }}
+{{#include ../../src/graph/low_link.hpp }}
 ```

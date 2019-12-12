@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/string/manacher.hpp }}
+{{#include ../../src/string/manacher.hpp }}
 ```

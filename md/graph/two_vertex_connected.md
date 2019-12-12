@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{ ../../src/graph/two_vertex_connected.hpp }}
+{{#include ../../src/graph/two_vertex_connected.hpp }}
 ```
