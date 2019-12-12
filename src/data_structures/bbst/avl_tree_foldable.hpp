@@ -3,56 +3,6 @@
 #include <cassert>
 #include <iostream>
 
-/* 
- *
- * ---- AVL Tree Map (Foldable) ----
- *
- * AVL Tree Map (Foldable) can do the following operation
- *  - insert the element (key, value) in time O(logN)
- *  - erase the element whose key is given in time O(logN)
- *  - get/set the element value in time O(logN)
- *  - lower_bound in time O(logN)
- *  - nth-node in time O(logN)
- *  - fold the values in range in time O(logN)
- * 
- * ====> template argments <====
- *
- *  + Key
- *   - operator<  -> bool
- *   - operator== -> bool
- *  + Monoid
- *   - static Monoid::operation(Monoid, Monoid) -> Monoid
- *   - static Monoid::identity()                -> Monoid
- *
- * ====> member functions <====
- *
- *  * N = the number of elements
- *
- *  + at(key_type i)
- *   - get the value of i-th element in the array
- *   - in time O(logN)
- *  + insert(key_type key, value_type val)
- *   - insert the element (key, value)
- *   - if the element that has same key, update value.
- *   - in time O(logN)
- *  + erase(key_type key)
- *   - erase the element (key, _)
- *   - in time O(logN)
- *  + size()
- *   - the size of the tree
- *   - in time O(1)
- *  + lower_bound(key_type key)
- *   - find the lower bound of key
- *   - in time O(logN)
- *  + nth_node(size_type i)
- *   - find the i-th element
- *   - in time O(logN)
- *  + fold(key_type left, key_type right)
- *   - fold the value in [left, right)
- *   - in time O(logN)
- *
- */
-
 template<class Key, class Monoid>
 class avl_tree_map {
   public:
@@ -73,6 +23,14 @@ class avl_tree_map {
       else return node->height();
     }
 
+    static value_type identity() {
+      return 0;
+    }
+
+    static value_type operation(const value_type& a, const value_type& b) {
+      return a + b;
+    }
+
     class node {
       private:
         key_type ky;
@@ -84,11 +42,11 @@ class avl_tree_map {
 
         value_type fold;
 
-        node(key_type key, value_type val): ky(std::move(key)), val(std::move(val)), fold(value_type::identity()), sz(1), hei(1), chi() { fix(); }
+        node(key_type key, value_type val): ky(std::move(key)), val(std::move(val)), fold(identity()), sz(1), hei(1), chi() { fix(); }
         void fix() {
           fold = val;
-          if(chi[0]) fold = value_type::operation(chi[0]->fold, fold);
-          if(chi[1]) fold = value_type::operation(fold, chi[1]->fold);
+          if(chi[0]) fold = operation(chi[0]->fold, fold);
+          if(chi[1]) fold = operation(fold, chi[1]->fold);
           sz = avl_tree_map::size(chi[0]) + avl_tree_map::size(chi[1]) + 1;
           hei = std::max(avl_tree_map::height(chi[0]), avl_tree_map::height(chi[1])) + 1;
         }
@@ -219,12 +177,12 @@ class avl_tree_map {
     static node_type& lower_bound(node_type& node, key_type key) {
       if(!node) return node;
       else if(key < node->key()) {
-        return lower_bound(node->child(0), std::move(key));
-      }
-      else {
-        auto ans = lower_bound(node->child(1), std::move(key));
+        auto& ans = lower_bound(node->child(0), std::move(key));
         if(ans) return ans;
         else return node;
+      }
+      else {
+        return lower_bound(node->child(1), std::move(key));
       }
     }
 
@@ -235,29 +193,29 @@ class avl_tree_map {
     }
 
     static value_type left_fold(node_type& node, key_type left) {
-      if(!node) { return value_type::identity(); }
+      if(!node) { return identity(); }
       if(node->key() < left) { return left_fold(node->child(1), std::move(left)); }
       else { 
-        value_type R = value_type::identity();
+        value_type R = identity();
         if(node->child(1)) R = node->child(1)->fold;
-        return value_type::operation(left_fold(node->child(0), std::move(left)), value_type::operation(node->value(), R));
+        return operation(left_fold(node->child(0), std::move(left)), operation(node->value(), R));
       }
     }
 
     static value_type right_fold(node_type& node, key_type right) {
-      if(!node) { return value_type::identity(); }
+      if(!node) { return identity(); }
       if(!(node->key() < right)) { return right_fold(node->child(0), std::move(right)); }
       else {
-        value_type L = value_type::identity();
+        value_type L = identity();
         if(node->child(0)) L = node->child(0)->fold;
-        return value_type::operation(L, value_type::operation(node->value(), right_fold(node->child(1), std::move(right))));
+        return operation(L, operation(node->value(), right_fold(node->child(1), std::move(right))));
       }
     }
 
     static value_type go_fold(node_type& node, key_type left, key_type right) {
-      if(!node) return value_type::identity();
+      if(!node) return identity();
       if(left <= node->key() && node->key() < right) {
-        return value_type::operation(left_fold(node->child(0), std::move(left)), value_type::operation(node->value(), right_fold(node->child(1), std::move(right))));
+        return operation(left_fold(node->child(0), std::move(left)), operation(node->value(), right_fold(node->child(1), std::move(right))));
       }
       else if(node->key() < left) {
         return go_fold(node->child(1), std::move(left), std::move(right));
@@ -289,9 +247,14 @@ class avl_tree_map {
       root = erase(std::move(root), std::move(key));
     }
 
-    std::pair<key_type, value_type> lower_bound(key_type key) {
-      auto node = lower_bound(root, std::move(key));
-      return { node->key(), node->value() };
+    std::pair<bool, std::pair<key_type, value_type>> lower_bound(key_type key) {
+      auto& node = lower_bound(root, std::move(key));
+      if(node) {
+        return { true, { node->key(), node->value() } };
+      }
+      else {
+        return { false, { key_type(), value_type() } };
+      }
     }
 
     std::pair<key_type, value_type> nth_node(size_type i) {
