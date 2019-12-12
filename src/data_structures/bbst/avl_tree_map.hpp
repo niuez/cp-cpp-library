@@ -2,49 +2,6 @@
 #include <array>
 #include <cassert>
 
-/* 
- *
- * ---- AVL Tree Map ----
- *
- * AVL Tree Map can do the following operation
- *  - insert the element (key, value) in time O(logN)
- *  - erase the element whose key is given in time O(logN)
- *  - get/set the element value in time O(logN)
- *  - lower_bound in time O(logN)
- *  - nth-node in time O(logN)
- * 
- * ====> template argments <====
- *
- *  + Key
- *   - operator<  -> bool
- *   - operator== -> bool
- *
- * ====> member functions <====
- *
- *  * N = the number of elements
- *
- *  + at(key_type i)
- *   - get the value of i-th element in the array
- *   - in time O(logN)
- *  + insert(key_type key, value_type val)
- *   - insert the element (key, value)
- *   - if the element that has same key, update value.
- *   - in time O(logN)
- *  + erase(key_type key)
- *   - erase the element (key, _)
- *   - in time O(logN)
- *  + size()
- *   - the size of the tree
- *   - in time O(1)
- *  + lower_bound(key_type key)
- *   - find the lower bound of key
- *   - in time O(logN)
- *  + nth_node(size_type i)
- *   - find the i-th element
- *   - in time O(logN)
- *
- */
-
 template<class Key, class Value>
 class avl_tree_map {
   public:
@@ -206,12 +163,12 @@ class avl_tree_map {
     static node_type& lower_bound(node_type& node, key_type key) {
       if(!node) return node;
       else if(key < node->key()) {
-        return lower_bound(node->child(0), std::move(key));
-      }
-      else {
-        auto ans = lower_bound(node->child(1), std::move(key));
+        auto& ans = lower_bound(node->child(0), std::move(key));
         if(ans) return ans;
         else return node;
+      }
+      else {
+        return lower_bound(node->child(1), std::move(key));
       }
     }
 
@@ -242,9 +199,14 @@ class avl_tree_map {
       root = erase(std::move(root), std::move(key));
     }
 
-    std::pair<key_type, value_type> lower_bound(key_type key) {
-      auto node = lower_bound(root, std::move(key));
-      return { node->key(), node->value() };
+    std::pair<bool, std::pair<key_type, value_type>> lower_bound(key_type key) {
+      auto& node = lower_bound(root, std::move(key));
+      if(node) {
+        return { true, { node->key(), node->value() } };
+      }
+      else {
+        return { false, { key_type(), value_type() } };
+      }
     }
 
     std::pair<key_type, value_type> nth_node(size_type i) {

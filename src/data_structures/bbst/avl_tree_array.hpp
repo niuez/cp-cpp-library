@@ -1,49 +1,6 @@
 #include <memory>
 #include <array>
 
-
-/* 
- *
- * ---- AVL Tree Array ----
- *
- * AVL Tree Array can do the following operation
- *  - split to two array in time O(logN)
- *  - merge two array in time O(logN)
- *  - get/set the value in time O(logN)
- *  - more and more in time O(logN) (accumulation, reversing, ...)
- * 
- * ====> template argments <====
- * 
- * Monoid
- *  required -> 
- *   + static Monoid::operation(Monoid, Monoid) -> Monoid
- *   + static Monoid::identity()                -> Monoid
- *
- *
- * ====> member functions <====
- *
- *  * N = the number of elements
- *
- *  + at(size_type i)
- *   - get the value of i-th element in the array
- *   - in time O(logN)
- *  + set(size_type i, value_type val)
- *   - update the value of i-th element in the array to val.
- *   - in time O(logN)
- *  + size()
- *   - the size of the array
- *   - in time O(1)
- *
- * ====> friend functions <====
- *  + merge(avl&&, avl&&)
- *   - merge two array.
- *   - in time O(logN)
- *  + split(avl&&, size_type i)
- *   - split to two array [0, i), [i, ...)
- *   - in time O(logN)
- *
- */
-
 template<class T>
 class avl_tree_array {
   public:
@@ -273,36 +230,3 @@ std::pair<avl_tree_array<T>, avl_tree_array<T>> split(avl_tree_array<T>&& t, std
   auto rp = avl_tree_array<T>::split(std::move(t.root), i);
   return std::make_pair(avl_tree_array<T>(std::move(rp.first)), avl_tree_array<T>(std::move(rp.second)));
 }
-}
-
-#include <iostream>
-using namespace std;
-using i64 = long long;
-
-namespace niu {
-  namespace aoj_rsq {
-    void main_() {
-      using niu::merge;
-      using niu::split;
-      using niu::avl_tree_array;
-      int n;
-      int q;
-      cin >> n >> q;
-      niu::avl_tree_array<i64> seg;
-      for(int i = 0;i < n;i++) seg = merge(std::move(seg), avl_tree_array<i64>(0));
-      for(int Q = 0;Q < q;Q++) {
-        i64 x, y, z;
-        cin >> x >> y >> z;
-        y--;
-        if(x == 0) {
-          seg.set(y, seg.at(y) + z);
-        }
-        else {
-          auto p = split(std::move(seg), z);
-          auto q = split(std::move(p.first), y);
-          seg = merge(std::move(q.first), merge(std::move(q.second), std::move(p.second)));
-        }
-      }
-    }
-  }
-
