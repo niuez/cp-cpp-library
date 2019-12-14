@@ -150,11 +150,8 @@ struct suffix_array_search {
   std::vector<int> sa;
   std::vector<int> lcp;
   sparse_table<int> st;
-  
-  template<class I>
-  suffix_array_search(I b, I e, int k): str(b, e) {
-    N = str.size();
-    sa = sa_is(str, k);
+
+  void lsp_setup() {
     rnk.resize(N + 1);
     lcp.resize(N + 1);
 
@@ -177,6 +174,46 @@ struct suffix_array_search {
 
     st = sparse_table<int>(lcp);
   }
+  
+  template<class I>
+  suffix_array_search(I b, I e, int k): str(b, e) {
+    N = str.size();
+    sa = sa_is(str, k);
+
+    //lsp_setup();
+  }
+
+  int compare(const std::vector<T>& t, int pos) {
+    int i = 0;
+    while(pos + i < str.size() && i < t.size()) {
+      if(str[pos + i] < t[i]) {
+        return 1;
+      }
+      else if(str[pos + i] > t[i]) {
+        return -1;
+      }
+      i++;
+    }
+    if(i == t.size()) return 0;
+    else return 1;
+  }
+  
+
+  // fast!
+  bool contain(const std::vector<T>& t) {
+    int L = 0;
+    int R = sa.size();
+    while(R - L > 1) {
+      int M = (L + R) >> 1;
+      if(compare(t, sa[M]) >= 0) {
+        L = M;
+      }
+      else {
+        R = M;
+      }
+    }
+    return compare(t, sa[L]) == 0;
+  }
 
   std::pair<int, int> get_lcp(const std::vector<T>& t, int si, int offset) {
     int i = offset;
@@ -191,6 +228,8 @@ struct suffix_array_search {
     return { i, 0 };
   }
 
+
+  // why slow???
   std::pair<int, int> search(const std::vector<T>& t) {
     int L = 0;
     int R = N + 1;
@@ -226,7 +265,9 @@ struct suffix_array_search {
     int Llcp;
     int i;
   };
+  
 
+  // why slow???
   std::vector<element> parallel_search(const std::vector<std::vector<T>>& t) {
     std::vector<element> now(t.size(), { 0, N + 1, 0, 0 });
     for(int i = 0;i < t.size(); i++)
@@ -282,7 +323,6 @@ struct suffix_array_search {
       std::swap(next, now);
       next.clear();
     }
-
     return ans;
   }
 };
