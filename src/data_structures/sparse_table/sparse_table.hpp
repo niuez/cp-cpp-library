@@ -18,7 +18,7 @@ struct sparse_table {
     table.resize(N, vector<Band>(log_t[N] + 1));
 
     for(int i = 0;i < N;i++) {
-      table[i][0] = i;
+      table[i][0] = arr[i];
     }
 
     for(int k = 1;(1 << k) <= N;k++) {
