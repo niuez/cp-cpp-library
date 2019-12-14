@@ -1,104 +1,111 @@
-#include <bits/stdc++.h>
-using namespace std;
-using i64 = long long;
+#include <vector>
+#include <iostream>
 
-template<class Array>
-struct suffix_array {
-  Array arr;
-  vector<i64> rank;
-  vector<i64> tmp;
-  vector<i64> sa;
-  vector<i64> lcp;
-  i64 n;
+template<class T>
+const std::vector<int>& sa_is(std::vector<T> s, int k) {
+  int N = s.size();
+  static std::vector<int> sa;
+  static std::vector<int> cnt;
+  sa.resize(N + 1);
 
-  /* O(nlog^2n) n = |S| */
-  suffix_array(const Array& s): arr(s), rank(s.size() + 1), tmp(s.size() + 1), sa(s.size() + 1), n(s.size()), lcp(s.size() + 1) {
-    for(int i = 0;i <= n;i++) {
-      sa[i] = i;
-      rank[i] = i < n ? s[i] : -1;
+  if(N == 0) return sa;
+
+  for(auto& c: s) c++;
+  s.push_back(0);
+  k++;
+
+  std::vector<bool> iss(N + 1);
+  std::vector<int> lms;
+  std::vector<int> is_lms(N + 1, -1);
+  std::vector<int> bin(k + 1);
+
+  iss[N] = true;
+  bin[1]++;
+  for(int i = N; i --> 0; ) {
+    if(s[i] == s[i + 1])
+      iss[i] = iss[i + 1];
+    else
+      iss[i] = s[i] < s[i + 1];
+    if(!iss[i] && iss[i + 1]) {
+      is_lms[i + 1] = lms.size();
+      lms.push_back(i + 1);
     }
-    i64 k;
-    auto compare_sa = [&](i64 i, i64 j) {
-      if(rank[i] != rank[j]) return rank[i] < rank[j];
+    bin[s[i] + 1]++;
+  }
+
+  for(int i = 1;i <= k;i++)
+    bin[i] += bin[i - 1];
+
+  auto induce = [&](const std::vector<int>& lms) {
+    sa.assign(N + 1, -1);
+    cnt.assign(k, 0);
+
+    for(int i = 0;i < lms.size();i++) {
+      int x = lms[i];
+      sa[bin[s[x] + 1] - 1 - cnt[s[x]]] = x;
+      cnt[s[x]]++;
+    }
+
+    cnt.assign(k, 0);
+    for(int i = 0;i <= N;i++) {
+      int x = sa[i] - 1;
+      if(x >= 0 && !iss[x]) {
+        sa[bin[s[x]] + cnt[s[x]]] = x;
+        cnt[s[x]]++;
+      }
+    }
+
+    cnt.assign(k, 0);
+    for(int i = N + 1;i --> 0;) {
+      int x = sa[i] - 1;
+      if(x >= 0 && iss[x]) {
+        sa[bin[s[x] + 1] - 1 - cnt[s[x]]] = x;
+        cnt[s[x]]++;
+      }
+    }
+  };
+
+  induce(lms);
+
+
+  if(lms.size() >= 2) {
+    int M = lms.size();
+    int li = 0;
+    std::vector<int> rec_lms(M);
+    for(auto x: sa) {
+      if(is_lms[x] != -1) rec_lms[li++] = x;
+    }
+    int rec_n = 1;
+    std::vector<int> rec_s(M);
+    rec_s[M - 1 - is_lms[rec_lms[1]]] = 1;
+    for(int i = 2;i < M;i++) {
+      int xl = rec_lms[i];
+      int yl = rec_lms[i - 1];
+      int xr = lms[is_lms[xl] - 1];
+      int yr = lms[is_lms[yl] - 1];
+      if(xr - xl != yr - yl)
+        rec_n++;
       else {
-        i64 ri = (i + k <= n ? rank[i + k] : -1);
-        i64 rj = (j + k <= n ? rank[j + k] : -1);
-        return ri < rj;
-      }
-    };
-    for(k = 1; k <= n; k *= 2) {
-      sort(begin(sa), end(sa), compare_sa);
-      tmp[sa[0]] = 0;
-      for(int i = 1;i <= n;i++) {
-        tmp[sa[i]] = tmp[sa[i - 1]] + !!(compare_sa(sa[i - 1], sa[i]));
-      }
-      for(int i = 0; i <= n; i++) {
-        rank[i] = tmp[i];
-      }
-    }
-
-    for(int i = 0; i <= n; i++) {
-      rank[sa[i]] = i; 
-    }
-
-    i64 h = 0;
-    lcp[0] = 0;
-    for(int i = 0;i < n;i++) {
-      int j = sa[rank[i] - 1];
-      if(h > 0) h--;
-      for(; j + h < n && i + h < n; h++) {
-        if(arr[j + h] != arr[i + h]) break;
-      }
-      lcp[rank[i] - 1] = h;
-    }
-  }
-
-  i64 SA(const i64 i) const {
-    return sa[i];
-  }
-
-  i64 LCP(const i64 i) const {
-    return lcp[i];
-  }
-
-  /* O(|T|logn) */
-  /* return start index */
-  /* not fount -> return -1 */
-  i64 contain(const Array& t) {
-    auto comp = [&](i64 s) {
-      for(int i = s;i < s + t.size();i++) {
-        if(i < arr.size()) {
-          if(arr[i] != t[i - s]) {
-            return t[i - s] - arr[i];
+        while(xl <= xr) {
+          if(s[xl] != s[yl]) {
+            rec_n++;
+            break;
           }
-        }
-        else {
-          return false;
+          xl++;
+          yl++;
         }
       }
-      return 0;
-    };
-    i64 ok = n;
-    i64 ng = 0;
-    while(ok - ng > 1) {
-      i64 m = (ok + ng) / 2;
-      if(comp(sa[m]) > 0) { ng = m; }
-      else { ok = m; }
+      rec_s[M - 1 - is_lms[rec_lms[i]]] = rec_n;
     }
-    if(comp(sa[ok]) == 0) {
-      return sa[ok];
+
+
+    sa_is(std::move(rec_s), rec_n + 1);
+    li = M;
+    for(int i = 1;i < M + 1;i++) {
+      rec_lms[--li] = lms[M - 1 - sa[i]];
     }
-    else {
-      return -1;
-    }
+    induce(rec_lms);
   }
-};
 
-/*
- * 23451, 34512, 45123, ...のなかから辞書順最小を見つける
- * s = 1234512345
- * s.suf[i] < s.suf[j] => rank[i] < rank[j]
- * sufの最初の5文字で最小は決められるため.
- * -> 条件に合うものをi = 0からsa[i]を探索
- */
-
+  return sa;
+}
