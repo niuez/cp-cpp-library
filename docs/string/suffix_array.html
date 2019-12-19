@@ -153,110 +153,117 @@
                     <main>
                         <h1><a class="header" href="#suffix-array" id="suffix-array">Suffix Array</a></h1>
 <h2><a class="header" href="#code" id="code">Code</a></h2>
-<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
-using namespace std;
-using i64 = long long;
+<pre><code class="language-cpp">#include &lt;vector&gt;
+#include &lt;iostream&gt;
 
-template&lt;class Array&gt;
-struct suffix_array {
-  Array arr;
-  vector&lt;i64&gt; rank;
-  vector&lt;i64&gt; tmp;
-  vector&lt;i64&gt; sa;
-  vector&lt;i64&gt; lcp;
-  i64 n;
+template&lt;class T&gt;
+const std::vector&lt;int&gt;&amp; sa_is(std::vector&lt;T&gt; s, int k) {
+  int N = s.size();
+  static std::vector&lt;int&gt; sa;
+  static std::vector&lt;int&gt; cnt;
+  sa.resize(N + 1);
 
-  /* O(nlog^2n) n = |S| */
-  suffix_array(const Array&amp; s): arr(s), rank(s.size() + 1), tmp(s.size() + 1), sa(s.size() + 1), n(s.size()), lcp(s.size() + 1) {
-    for(int i = 0;i &lt;= n;i++) {
-      sa[i] = i;
-      rank[i] = i &lt; n ? s[i] : -1;
+  if(N == 0) return sa;
+
+  for(auto&amp; c: s) c++;
+  s.push_back(0);
+  k++;
+
+  std::vector&lt;bool&gt; iss(N + 1);
+  std::vector&lt;int&gt; lms;
+  std::vector&lt;int&gt; is_lms(N + 1, -1);
+  std::vector&lt;int&gt; bin(k + 1);
+
+  iss[N] = true;
+  bin[1]++;
+  for(int i = N; i --&gt; 0; ) {
+    if(s[i] == s[i + 1])
+      iss[i] = iss[i + 1];
+    else
+      iss[i] = s[i] &lt; s[i + 1];
+    if(!iss[i] &amp;&amp; iss[i + 1]) {
+      is_lms[i + 1] = lms.size();
+      lms.push_back(i + 1);
     }
-    i64 k;
-    auto compare_sa = [&amp;](i64 i, i64 j) {
-      if(rank[i] != rank[j]) return rank[i] &lt; rank[j];
+    bin[s[i] + 1]++;
+  }
+
+  for(int i = 1;i &lt;= k;i++)
+    bin[i] += bin[i - 1];
+
+  auto induce = [&amp;](const std::vector&lt;int&gt;&amp; lms) {
+    sa.assign(N + 1, -1);
+    cnt.assign(k, 0);
+
+    for(int i = 0;i &lt; lms.size();i++) {
+      int x = lms[i];
+      sa[bin[s[x] + 1] - 1 - cnt[s[x]]] = x;
+      cnt[s[x]]++;
+    }
+
+    cnt.assign(k, 0);
+    for(int i = 0;i &lt;= N;i++) {
+      int x = sa[i] - 1;
+      if(x &gt;= 0 &amp;&amp; !iss[x]) {
+        sa[bin[s[x]] + cnt[s[x]]] = x;
+        cnt[s[x]]++;
+      }
+    }
+
+    cnt.assign(k, 0);
+    for(int i = N + 1;i --&gt; 0;) {
+      int x = sa[i] - 1;
+      if(x &gt;= 0 &amp;&amp; iss[x]) {
+        sa[bin[s[x] + 1] - 1 - cnt[s[x]]] = x;
+        cnt[s[x]]++;
+      }
+    }
+  };
+
+  induce(lms);
+
+
+  if(lms.size() &gt;= 2) {
+    int M = lms.size();
+    int li = 0;
+    std::vector&lt;int&gt; rec_lms(M);
+    for(auto x: sa) {
+      if(is_lms[x] != -1) rec_lms[li++] = x;
+    }
+    int rec_n = 1;
+    std::vector&lt;int&gt; rec_s(M);
+    rec_s[M - 1 - is_lms[rec_lms[1]]] = 1;
+    for(int i = 2;i &lt; M;i++) {
+      int xl = rec_lms[i];
+      int yl = rec_lms[i - 1];
+      int xr = lms[is_lms[xl] - 1];
+      int yr = lms[is_lms[yl] - 1];
+      if(xr - xl != yr - yl)
+        rec_n++;
       else {
-        i64 ri = (i + k &lt;= n ? rank[i + k] : -1);
-        i64 rj = (j + k &lt;= n ? rank[j + k] : -1);
-        return ri &lt; rj;
-      }
-    };
-    for(k = 1; k &lt;= n; k *= 2) {
-      sort(begin(sa), end(sa), compare_sa);
-      tmp[sa[0]] = 0;
-      for(int i = 1;i &lt;= n;i++) {
-        tmp[sa[i]] = tmp[sa[i - 1]] + !!(compare_sa(sa[i - 1], sa[i]));
-      }
-      for(int i = 0; i &lt;= n; i++) {
-        rank[i] = tmp[i];
-      }
-    }
-
-    for(int i = 0; i &lt;= n; i++) {
-      rank[sa[i]] = i; 
-    }
-
-    i64 h = 0;
-    lcp[0] = 0;
-    for(int i = 0;i &lt; n;i++) {
-      int j = sa[rank[i] - 1];
-      if(h &gt; 0) h--;
-      for(; j + h &lt; n &amp;&amp; i + h &lt; n; h++) {
-        if(arr[j + h] != arr[i + h]) break;
-      }
-      lcp[rank[i] - 1] = h;
-    }
-  }
-
-  i64 SA(const i64 i) const {
-    return sa[i];
-  }
-
-  i64 LCP(const i64 i) const {
-    return lcp[i];
-  }
-
-  /* O(|T|logn) */
-  /* return start index */
-  /* not fount -&gt; return -1 */
-  i64 contain(const Array&amp; t) {
-    auto comp = [&amp;](i64 s) {
-      for(int i = s;i &lt; s + t.size();i++) {
-        if(i &lt; arr.size()) {
-          if(arr[i] != t[i - s]) {
-            return t[i - s] - arr[i];
+        while(xl &lt;= xr) {
+          if(s[xl] != s[yl]) {
+            rec_n++;
+            break;
           }
-        }
-        else {
-          return false;
+          xl++;
+          yl++;
         }
       }
-      return 0;
-    };
-    i64 ok = n;
-    i64 ng = 0;
-    while(ok - ng &gt; 1) {
-      i64 m = (ok + ng) / 2;
-      if(comp(sa[m]) &gt; 0) { ng = m; }
-      else { ok = m; }
+      rec_s[M - 1 - is_lms[rec_lms[i]]] = rec_n;
     }
-    if(comp(sa[ok]) == 0) {
-      return sa[ok];
+
+
+    sa_is(std::move(rec_s), rec_n + 1);
+    li = M;
+    for(int i = 1;i &lt; M + 1;i++) {
+      rec_lms[--li] = lms[M - 1 - sa[i]];
     }
-    else {
-      return -1;
-    }
+    induce(rec_lms);
   }
-};
 
-/*
- * 23451, 34512, 45123, ...のなかから辞書順最小を見つける
- * s = 1234512345
- * s.suf[i] &lt; s.suf[j] =&gt; rank[i] &lt; rank[j]
- * sufの最初の5文字で最小は決められるため.
- * -&gt; 条件に合うものをi = 0からsa[i]を探索
- */
-
+  return sa;
+}
 </code></pre>
 
                     </main>

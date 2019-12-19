@@ -219,76 +219,113 @@
 </li>
 </ul>
 <h3><a class="header" href="#code" id="code">Code</a></h3>
-<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
-using namespace std;
+<pre><code class="language-cpp">#include &lt;vector&gt;
+#include &lt;set&gt;
+#include &lt;iostream&gt;
 using i64 = long long;
 
 struct lazy_segment_tree {
   using T = i64;
-  using L = pair&lt;i64, i64&gt;;
-  static T t_ide() { return 0; }
-  static L l_ide() { return {0, 0}; }
-  static T ope(const T&amp; a, const T&amp; b) { return a + b; }
-  static L lazy_ope(const L&amp; a, const L&amp; b) { return { a.first + b.first, a.second + b.second }; }
-  static T effect(const T&amp; t, const L&amp; l, const i64 len) { return t + l.first * len; }
+  using L = i64;
+  static inline T t_ide() { return (1LL &lt;&lt; 31) - 1; }
+  static inline L l_ide() { return (1LL &lt;&lt; 31) - 1; }
+  static inline T ope(const T&amp; a, const T&amp; b) { return std::min(a, b); }
+  static inline L lazy_ope(const L&amp; a, const L&amp; b) { return b; }
+  static inline T effect(const T&amp; t, const L&amp; l) { return l; }
 
-  i64 n;
-  vector&lt;T&gt; node;
-  vector&lt;L&gt; lazy;
-  vector&lt;bool&gt; flag;
+  int n, h;
+  std::vector&lt;T&gt; node;
+  std::vector&lt;L&gt; lazy;
+  std::vector&lt;bool&gt; flag;
 
-  /* create lazy_segment_tree for sequence [t_ide; sz]A */
-  lazy_segment_tree(const vector&lt;T&gt;&amp; init) {
+  lazy_segment_tree(int N) {
     n = 1;
-    while(n &lt; init.size()) n *= 2;
-    node.resize(2 * n - 1, t_ide());
-    lazy.resize(2 * n - 1, l_ide());
-    flag.resize(2 * n - 1, false);
-    for(int i = 0;i &lt; init.size();i++) node[i + n - 1] = init[i];
-    for(int i = n - 2; i &gt;= 0;i--) node[i] = ope(node[i * 2 + 1], node[i * 2 + 2]);
+    h = 1;
+    while(n &lt; N) n &lt;&lt;= 1, h++;
+    node.resize(n &lt;&lt; 1, t_ide());
+    lazy.resize(n &lt;&lt; 1, l_ide());
+    flag.resize(n &lt;&lt; 1, false);
   }
-  
-
-  void eval(i64 l, i64 r, i64 k) {
-    if(flag[k]) {
-      node[k] = effect(node[k], lazy[k], r - l);
-      
-      if(r - l &gt; 1) {
-        lazy[k * 2 + 1] = lazy_ope(lazy[k * 2 + 1], lazy[k]);
-        flag[k * 2 + 1] = true;
-        lazy[k * 2 + 2] = lazy_ope(lazy[k * 2 + 2], lazy[k]);
-        flag[k * 2 + 2] = true;
-      }
-
-      flag[k] = false;
-      lazy[k] = l_ide();
-    }
+  lazy_segment_tree(const std::vector&lt;T&gt;&amp; init) {
+    n = 1;
+    h = 1;
+    while(n &lt; init.size()) n &lt;&lt;= 1, h++;
+    node.resize(n &lt;&lt; 1, t_ide());
+    lazy.resize(n &lt;&lt; 1, l_ide());
+    flag.resize(n &lt;&lt; 1, false);
+    for(int i = 0;i &lt; init.size();i++) node[i + n] = init[i];
+    for(int i = n; i --&gt; 1;) node[i] = ope(node[(i &lt;&lt; 1)], node[(i &lt;&lt; 1) + 1]);
   }
-  
-  /* for i in [a, b) effect(a[i], lx) */
-  void update(i64 a, i64 b, L lx, i64 l = 0, i64 r = -1, i64 k = 0) {
-    if(r &lt; 0) r = n;
-    eval(l, r, k);
-    if(b &lt;= l || r &lt;= a) return;
-    else if(a &lt;= l &amp;&amp; r &lt;= b) {
-      lazy[k] = lazy_ope(lazy[k], lx);
+
+  inline void eff(int k, L x) {
+    if(k &lt; n &lt;&lt; 1) {
+      lazy[k] = lazy_ope(lazy[k], x);
       flag[k] = true;
-      eval(l, r, k);
-    }
-    else {
-      update(a, b, lx, l, (l + r) / 2, k * 2 + 1);
-      update(a, b, lx, (l + r) / 2, r, k * 2 + 2);
-      node[k] =ope(node[k * 2 + 1], node[k * 2 + 2]);
     }
   }
-  
-  /* the sum of a[i] for i in [a, b) */
-  T sum(i64 a, i64 b, i64 l = 0, i64 r = -1, i64 k = 0) {
-    if(r &lt; 0) r = n;
-    eval(l, r, k);
-    if(b &lt;= l || r &lt;= a) return t_ide();
-    else if(a &lt;= l &amp;&amp; r &lt;= b) return node[k];
-    else return ope(sum(a, b, l, (l + r) / 2, k * 2 + 1), sum(a, b, (l + r) / 2, r, k * 2 + 2));
+  inline T eval(int k) const { return flag[k] ? effect(node[k], lazy[k]) : node[k]; }
+
+  inline void push(int k) {
+    if(flag[k]) {
+      node[k] = eval(k);
+      eff(k &lt;&lt; 1, lazy[k]);
+      eff((k &lt;&lt; 1) | 1, lazy[k]);
+      lazy[k] = l_ide();
+      flag[k] = false;
+    }
+  }
+
+  inline void infuse(int k) {
+    k = k &gt;&gt; __builtin_ctz(k);
+    while((k &gt;&gt;= 1)) node[k] = ope(eval(k &lt;&lt; 1), eval((k &lt;&lt; 1) + 1));
+  }
+
+  inline void infiltrate(int k) {
+    if(k == n &lt;&lt; 1) return;
+    int kc = __builtin_ctz(k);
+    for(int i = h; i --&gt; kc;) push(k &gt;&gt; i);
+  }
+
+  inline void infiltrate(int l, int r) {
+    if(r == n &lt;&lt; 1) infiltrate(l);
+    else {
+      int hh = h;
+      int x = l ^ r;
+      for(; !(x &gt;&gt; --hh);) push(l &gt;&gt; hh);
+      int lc = __builtin_ctz(l);
+      for(int i = hh + 1; i --&gt; lc;) push(l &gt;&gt; i);
+      int rc = __builtin_ctz(r);
+      for(int i = hh + 1; i --&gt; rc;) push(r &gt;&gt; i);
+    }
+  }
+
+  void update(int a, int b, L x) {
+    int l = a + n;
+    int r = b + n;
+    infiltrate(l, r);
+    while(l &lt; r) {
+      if(l &amp; 1) eff(l++, x);
+      if(r &amp; 1) eff(--r, x);
+      l &gt;&gt;= 1;
+      r &gt;&gt;= 1;
+    }
+    infuse(a + n);
+    infuse(b + n);
+  }
+
+  T sum(int l, int r) {
+    l += n;
+    r += n;
+    infiltrate(l, r);
+    T lx = t_ide();
+    T rx = t_ide();
+    while(l &lt; r) {
+      if(l &amp; 1) lx = ope(lx, eval(l++));
+      if(r &amp; 1) rx = ope(eval(--r), rx);
+      l &gt;&gt;= 1;
+      r &gt;&gt;= 1;
+    }
+    return ope(lx, rx);
   }
 };
 </code></pre>
