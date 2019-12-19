@@ -93,6 +93,7 @@ public:
     return x;
   }
 
+  // counting elements that equal to x in range [left, right)
   size_type rank_x(size_type left, size_type right, integer_type x) const {
     for(size_type d = depth; d-- > 0;) {
       size_type k = ((x >> d) & 1);
@@ -102,6 +103,7 @@ public:
     return right - left;
   }
 
+  // sorted(arr[left..right])[i]
   integer_type quantile(size_type left, size_type right, size_type i) const {
     integer_type x = static_cast<integer_type>(0);
     for(size_type d = depth; d-- > 0;) {
@@ -114,45 +116,52 @@ public:
     return x;
   }
 
-  size_type greater_eq(size_type left, size_type right, integer_type x) const {
-    size_type cnt = 0;
-    for(size_type d = depth; d-- > 0;) {
-      size_type k = ((x >> d) & 1);
-      size_type rl = mat[d].rank(left, 1);
-      size_type rr = mat[d].rank(right, 1); 
+  struct rank_result {
+    size_type le;
+    size_type eq;
+    size_type mo;
+  };
+
+  // couting elements that less than x, equal to x, and more than x in range [left, right)
+  rank_result rank_less_eq_more(size_type left, size_type right, integer_type x) const {
+    size_type le = 0, mo = 0;
+    for(size_type d = depth; d --> 0;) {
+      size_type k = (x >> d) & 1;
+      size_type l = mat[d].rank(left, 1);
+      size_type r = mat[d].rank(right, 1);
       if(k == 0) {
-        cnt += rr - rl;
-        left -= rl;
-        right -= rr;
+        mo += r - l;
+        left -= l;
+        right -= r;
       }
       else {
-        left = rl + spl[d];
-        right = rr + spl[d];
+        le += (right - left) - (r - l);
+        left = l + spl[d];
+        right = r + spl[d];
       }
     }
-    return cnt + right - left;
+    return rank_result { le, right - left, mo };
+  }
+
+  size_type rangefreq(size_type left, size_type right, integer_type x, integer_type y, integer_type l, size_type d) const {
+    integer_type r = l + (1 << d);
+    if(x <= l && r <= y) {
+      return right - left;
+    }
+    else if(y <= l || r <= x) {
+      return 0;
+    }
+    else {
+      d--;
+      size_type lr = mat[d].rank(left, 1);
+      size_type rr = mat[d].rank(right, 1);
+      return
+        rangefreq(left - lr, right - rr, x, y, l, d) +
+        rangefreq(lr + spl[d], rr + spl[d], x, y, l + (1 << d), d);
+    }
   }
 
   size_type rangefreq(size_type left, size_type right, integer_type x, integer_type y) const {
-    return greater_eq(left, right, x) - greater_eq(left, right, y);
-  }
-
-  size_type greater(size_type left, size_type right, integer_type x) const {
-    size_type cnt = 0;
-    for(size_type d = depth; d-- > 0;) {
-      size_type k = ((x >> d) & 1);
-      size_type rl = mat[d].rank(left, 1);
-      size_type rr = mat[d].rank(right, 1); 
-      if(k == 0) {
-        cnt += rr - rl;
-        left -= rl;
-        right -= rr;
-      }
-      else {
-        left = rl + spl[d];
-        right = rr + spl[d];
-      }
-    }
-    return cnt;
+    return rangefreq(left, right, x, y, 0, depth);
   }
 };

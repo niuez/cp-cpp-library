@@ -1,10 +1,10 @@
-#include <bits/stdc++.h>
-using namespace std;
-using i64 = long long;
+#include <vector>
 
 template<class T>
 struct Compression {
-  vector<T> v;
+  using size_type = std::size_t;
+
+  std::vector<T> v;
 
   Compression(){}
   void add(const T& t) { v.push_back(t); }
@@ -12,17 +12,8 @@ struct Compression {
     sort(begin(v), end(v));
     v.erase(unique(begin(v), end(v)), end(v));
   }
-
-  i64 comp(const T& x) {
+  size_type comp(const T& x) const {
     return lower_bound(begin(v), end(v), x) - begin(v);
   }
-
-  vector<i64> comp(vector<T> a) {
-    vector<i64> ans;
-    for(auto& x: a)
-      ans.push_back(comp(x));
-    return ans;
-  }
-
-  i64 size() const { return v.size(); }
+  size_type size() const { return v.size(); }
 };
