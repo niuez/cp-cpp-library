@@ -1,6 +1,7 @@
 #include <memory>
 #include <array>
 #include <set>
+#include <tuple>
 #include <iostream>
 #include <cstdint>
 #include <cassert>
@@ -24,8 +25,7 @@ struct dynamic_bitvector {
   }
 
 
-  struct section_t {
-    height_type he;
+  struct section_t { height_type he;
     children_type ch;
   };
 
@@ -214,6 +214,90 @@ struct dynamic_bitvector {
     }
   }
 
+  template<const size_type dir>
+  static std::tuple<node_type, bits_type, size_type> take_bit(node_type node, size_type len) {
+    if(node->is_leaf) {
+      if(node->size() < bit_limit / 2 + len) {
+        return { node_type(nullptr), node->bits(), node->size() };
+      }
+      else {
+        auto p = node->split_bits(dir == 0 ? len : node->size() - len);
+        bits_type node_bit = std::get<1 - dir>(p);
+        bits_type take = std::get<dir>(p);
+        node->set_bits(node_bit, node->size() - len, bits_popcount(node_bit));
+        return { std::move(node), take, len };
+      }
+    }
+    else {
+      node_type ch;
+      bits_type bits;
+      size_type take_len;
+      std::tie(ch, bits, take_len) = take_bit<dir>(node->take(dir), len);
+      if(ch) {
+        node->swap(dir, std::move(ch));
+        return { balance(std::move(node)), bits, take_len };
+      }
+      else {
+        return { node->take(1 - dir), bits, take_len };
+      }
+    }
+  }
+
+  static node_type erase(node_type node, size_type pos) {
+    if(node->is_leaf) {
+      node->erase_bit(pos);
+      return node;
+    }
+    else if(pos < node->child(0)->size()) {
+      auto left = erase(node->take(0), pos);
+      if(left->size() < bit_limit / 2) {
+        assert(left->is_leaf);
+        node_type right;
+        bits_type bits;
+        size_type len;
+        std::tie(right, bits, len) = take_bit<0>(node->take(1), bit_limit / 2 - left->size());
+
+        left->set_bits(left->bits() | (bits << left->size()), left->size() + len, left->popcount() + bits_popcount(bits));
+        if(right) {
+          node->swap(0, std::move(left));
+          node->swap(1, std::move(right));
+          return balance(std::move(node));
+        }
+        else {
+          return left;
+        }
+      }
+      else {
+        node->swap(0, std::move(left));
+        return balance(std::move(node));
+      }
+    }
+    else {
+      auto right = erase(node->take(1), pos - node->child(0)->size());
+      if(right->size() < bit_limit / 2) {
+        assert(right->is_leaf);
+        node_type left;
+        bits_type bits;
+        size_type len;
+        std::tie(left, bits, len) = take_bit<1>(node->take(0), bit_limit / 2 - right->size());
+
+        right->set_bits((right->bits() << len) | bits, right->size() + len, right->popcount() + bits_popcount(bits));
+        if(left) {
+          node->swap(0, std::move(left));
+          node->swap(1, std::move(right));
+          return balance(std::move(node));
+        }
+        else {
+          return right;
+        }
+      }
+      else {
+        node->swap(1, std::move(right));
+        return balance(std::move(node));
+      }
+    }
+  }
+
   static size_type rank(node_reference node, size_type pos) {
     if(node->is_leaf) {
       return node->rank(pos);
@@ -232,6 +316,9 @@ struct dynamic_bitvector {
   void insert(size_type pos, bool bit) {
     root = insert(std::move(root), pos, bit);
   }
+  void erase(size_type pos) {
+    root = erase(std::move(root), pos);
+  }
   size_type rank(size_type pos) const {
     return rank(root, pos);
   }
@@ -239,24 +326,25 @@ struct dynamic_bitvector {
     return root->size();
   }
 
-  void debug_tree(node_reference node) const {
+  void debug_tree(node_reference node, std::string d) const {
     if(node->is_leaf) {
-      std::cout << "leaf " << node->size() << " -----------" << std::endl;
-      std::cout << std::bitset<bit_limit * 2>(node->bits()) << std::endl;
-      std::cout << "-------------" << std::endl;
+      std::cout << d << "leaf " << node->size() << " " << node->popcount() << " -----------" << std::endl;
+      std::cout << d << std::bitset<bit_limit * 2>(node->bits()) << std::endl;
+      std::cout << d << "-------------" << std::endl;
     }
     else {
-      std::cout << "node " << node->size() << " ----------" << std::endl;
-      std::cout << "left" << std::endl;
-      debug_tree(node->child(0));
-      std::cout << "right" << std::endl;
-      debug_tree(node->child(1));
-      std::cout << "--------------" << std::endl;
+      std::cout << d << "node " << node->size() << " " << node->popcount() << " ----------" << std::endl;
+      std::cout << d << "left" << std::endl;
+      debug_tree(node->child(0), d + "   ");
+      std::cout << d << "--------------" << std::endl;
+      std::cout << d << "right" << std::endl;
+      debug_tree(node->child(1), d + "   ");
+      std::cout << d << "--------------" << std::endl;
     }
   }
 
   void debug_tree() const {
-    debug_tree(root);
+    debug_tree(root, "");
   }
 };
 
@@ -277,10 +365,25 @@ int main() {
   for(int i = 0;i < len;i++) bs[i] = bits[i];
   std::cout << bs << std::endl;
   bitvec.debug_tree();
-  int sum = 0;
-  for(int i = 0;i < bits.size();i++) {
-    std::cout << i << " " << bitvec.rank(i) << " : " << sum << std::endl;
-    assert(bitvec.rank(i) == sum);
-    sum += bits[i];
+  {
+    int sum = 0;
+    for(int i = 0;i < bits.size();i++) {
+      //std::cout << i << " " << bitvec.rank(i) << " : " << sum << std::endl;
+      assert(bitvec.rank(i) == sum);
+      sum += bits[i];
+    }
   }
+
+  while(!bits.empty()) {
+    int pos = rand() % bits.size();
+    bits.erase(std::begin(bits) + pos);
+    bitvec.erase(pos);
+    bitvec.debug_tree();
+    int sum = 0;
+    for(int i = 0;i < bits.size();i++) {
+      assert(bitvec.rank(i) == sum);
+      sum += bits[i];
+    }
+  }
+  bitvec.debug_tree();
 }
