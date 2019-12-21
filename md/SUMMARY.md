@@ -28,6 +28,9 @@
       - [Persistent AVL Tree Array](./data_structures/bbst/persistent_avl_tree_array.md)
     - [Sparse Table](./data_structures/sparse_table/sparse_table.md)
       - [Sparse Table](./data_structures/sparse_table/sparse_table.md)
+    - [Wavelet Matrix](./data_structures/wavelet_matrix/index.md)
+      - [Wavelet Matrix](./data_structures/wavelet_matrix/wavelet_matrix.md)
+      - [Dynamic Wavelet Matrix](./data_structures/wavelet_matrix/dynamic_wavelet_matrix.md)
 
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
