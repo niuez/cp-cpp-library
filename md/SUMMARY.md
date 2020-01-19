@@ -31,6 +31,9 @@
     - [Wavelet Matrix](./data_structures/wavelet_matrix/index.md)
       - [Wavelet Matrix](./data_structures/wavelet_matrix/wavelet_matrix.md)
       - [Dynamic Wavelet Matrix](./data_structures/wavelet_matrix/dynamic_wavelet_matrix.md)
+    - [Other](./data_structures/other/index.md)
+      - [SWAG](./data_structures/other/swag.md)
+      - [Fenwick Tree](./data_structures/other/fenwick_tree.md)
 
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
@@ -65,3 +68,4 @@
     - [Monge DP](./tech/mongeDP.md)
     - [Mo's Algorithm](./tech/mo.md)
     - [Slide Min](./tech/slide_min.md)
+    - [FastIO](./tech/fastio.md)
