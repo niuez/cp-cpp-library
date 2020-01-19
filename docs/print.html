@@ -219,50 +219,45 @@
 </li>
 </ul>
 <h3><a class="header" href="#code" id="code">Code</a></h3>
-<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
-using namespace std;
+<pre><code class="language-cpp">#include &lt;vector&gt;
 using i64 = long long;
- 
+
+template&lt;class T, class Ope, const T&amp; Ide&gt;
 struct segment_tree {
-  using T = i64;
-  static T ope(const T&amp; a, const T&amp; b) {
-    return max(a, b);
-  }
-  static T ide() { return -1e18; }
+  Ope ope;
  
   i64 n;
-  vector&lt;T&gt; node;
+  std::vector&lt;T&gt; node;
  
-  segment_tree(const vector&lt;T&gt;&amp; init) {
+  segment_tree(const std::vector&lt;T&gt;&amp; init) {
     n = 1;
     while(n &lt; init.size()) n *= 2;
-    node.resize(2 * n, ide());
+    node.resize(2 * n, Ide);
     for(int i = 0;i &lt; init.size();i++) node[i + n] = init[i];
     for(int i = n - 1; i &gt;= 1;i--) node[i] = ope(node[i * 2], node[i * 2 + 1]);
   }
  
-  void update(i64 i, T x) {
+  void modify(i64 i, T x) {
     i += n;
-    node[i] = x;
+    node[i] = ope(node[i], x);
     while(i &gt; 1) {
       i = i / 2;
       node[i] = ope(node[i * 2], node[i * 2 + 1]);
     }
   }
-  
+
   /* [l, r) */
-  T sum(i64 l, i64 r) {
-    T lx = ide();
-    T rx = ide();
+  T sum(i64 l, i64 r) const {
+    T lx = Ide;
+    T rx = Ide;
     l += n;
-    r += n - 1;
+    r += n;
     while(l &lt; r) {
-      if(l &amp; 1) { lx = ope(lx, node[l]); }
-      if(!(r &amp; 1)) { rx = ope(node[r], rx); }
-      l = (l + 1) &gt;&gt; 1;
-      r = (r - 1) &gt;&gt; 1;
+      if(l &amp; 1) { lx = ope(lx, node[l++]); }
+      if(r &amp; 1) { rx = ope(node[--r], rx); }
+      l &gt;&gt;= 1;
+      r &gt;&gt;= 1;
     }
-    if(l == r) { lx = ope(lx, node[l]); }
     return ope(lx, rx);
   }
 };
