@@ -52,6 +52,7 @@
     - [Rolling Hash](./string/rolling_hash.md) 
     - [Suffix Array](./string/suffix_array.md)
     - [Z-algorithm](./string/Z-algorithm.md)
+    - [Burrows Wheeler](./string/burrows_wheeler.md)
   - [Graph](./graph/index.md)
     - [Max Flow](./graph/max_flow/dinic.md)
       - [Dinic](./graph/max_flow/dinic.md)
