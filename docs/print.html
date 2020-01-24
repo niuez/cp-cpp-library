@@ -7140,54 +7140,57 @@ struct Mo {
 <h1><a class="header" href="#fastio" id="fastio">FastIO</a></h1>
 <h3><a class="header" href="#spec-35" id="spec-35">Spec</a></h3>
 <h3><a class="header" href="#code-50" id="code-50">Code</a></h3>
-<p>#include <cstdio></p>
-<p>namespace niu {
-char cur;
-struct FIN {
-static inline bool is_blank(char c) { return c &lt;= ' '; }
-inline char next() { return cur = getc_unlocked(stdin); }
-inline char peek() { return cur; }
-inline void skip() { while(is_blank(next())){} }
-#define intin(inttype)  <br />
-FIN&amp; operator&gt;&gt;(inttype&amp; n) { <br />
-bool sign = 0; <br />
-n = 0; <br />
-skip(); <br />
-while(!is_blank(peek())) { <br />
-if(peek() == '-') sign = 1; <br />
-else n = (n &lt;&lt; 1) + (n &lt;&lt; 3) + (peek() &amp; 0b1111); <br />
-next(); <br />
-} <br />
-if(sign) n = -n; <br />
-return *this; <br />
-}
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+namespace niu {
+  char cur;
+  struct FIN {
+    static inline bool is_blank(char c) { return c &lt;= ' '; }
+    inline char next() { return cur = getc_unlocked(stdin); }
+    inline char peek() { return cur; }
+    inline void skip() { while(is_blank(next())){} }
+#define intin(inttype)  \
+    FIN&amp; operator&gt;&gt;(inttype&amp; n) { \
+      bool sign = 0; \
+      n = 0; \
+      skip(); \
+      while(!is_blank(peek())) { \
+        if(peek() == '-') sign = 1; \
+        else n = (n &lt;&lt; 1) + (n &lt;&lt; 3) + (peek() &amp; 0b1111); \
+        next(); \
+      } \
+      if(sign) n = -n; \
+      return *this; \
+    }
 intin(int)
 intin(long long)
-} fin;</p>
-<p>char tmp[128];
-struct FOUT {
-static inline bool is_blank(char c) { return c &lt;= ' '; }
-inline void push(char c) { putc_unlocked(c, stdout); }
-FOUT&amp; operator&lt;&lt;(char c) { push(c); return <em>this; }
-FOUT&amp; operator&lt;&lt;(const char</em> s) { while(*s) push(*s++); return <em>this; }
-#define intout(inttype) <br />
-FOUT&amp; operator&lt;&lt;(inttype n) { <br />
-if(n) { <br />
-char</em> p = tmp + 127; bool neg = 0; <br />
-if(n &lt; 0) neg = 1, n = -n; <br />
-while(n) *--p = (n % 10) | 0b00110000, n /= 10; <br />
-if(neg) *--p = '-'; <br />
-return (*this) &lt;&lt; p; <br />
-} <br />
-else { <br />
-push('0'); <br />
-return *this; <br />
-} <br />
-}
+  } fin;
+
+  char tmp[128];
+  struct FOUT {
+    static inline bool is_blank(char c) { return c &lt;= ' '; }
+    inline void push(char c) { putc_unlocked(c, stdout); }
+    FOUT&amp; operator&lt;&lt;(char c) { push(c); return *this; }
+    FOUT&amp; operator&lt;&lt;(const char* s) { while(*s) push(*s++); return *this; }
+#define intout(inttype) \
+    FOUT&amp; operator&lt;&lt;(inttype n) { \
+      if(n) { \
+        char* p = tmp + 127; bool neg = 0; \
+        if(n &lt; 0) neg = 1, n = -n; \
+        while(n) *--p = (n % 10) | 0b00110000, n /= 10; \
+        if(neg) *--p = '-'; \
+        return (*this) &lt;&lt; p; \
+      } \
+      else { \
+        push('0'); \
+        return *this; \
+      } \
+    }
 intout(int)
 intout(long long)
-} fout;
-}</p>
+  } fout;
+}
+</code></pre>
 
                     </main>
 
