@@ -3,6 +3,9 @@ name: Build Book
 on:
   push:
     branches: master
+    paths:
+    - 'src/**'
+    - 'md/**'
 
 jobs:
   build:

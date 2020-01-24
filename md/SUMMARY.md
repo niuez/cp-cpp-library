@@ -41,6 +41,7 @@
     - [Garner's Algorithm](./math/garner.md)
     - [Formal Power Series](./math/formal_power_series.md)
     - [Runtime fp](./math/runtime_fp.md)
+    - [Factorial](./math/factorial.md)
     - [Convolution](./math/convolution/index.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)
       - [Divisor Transform](./math/convolution/divisor_transform.md)
