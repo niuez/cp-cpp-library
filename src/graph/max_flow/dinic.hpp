@@ -1,108 +1,73 @@
 #include <vector>
 #include <queue>
-using namespace std;
+using i64 = long long;
 
-struct edge_base {
-  int from;
-  int to;
-};
+struct dinic {
+  using capacity_type = i64;
+  struct edge {
+    i64 from;
+    i64 to;
+    capacity_type cap;
+    i64 rev;
+  };
+  i64 n;
+  i64 s, t;
+  std::vector<std::vector<edge>> g;
 
-template<class E>
-struct graph_base {
-  virtual void add_edge(E e) = 0;
-  virtual const vector<E>& operator[](int i) const = 0;
-  virtual int N() const = 0;
-};
-
-template<class E>
-struct graph : graph_base<E> {
-  vector<vector<E>> G;
-  graph(int n) : G(n) {}
-  void add_edge(E e) {
-    G[e.from].push_back(e);
+  dinic(i64 n, i64 s, i64 t): n(n), s(s), t(t), g(n) {}
+  void add_edge(i64 from, i64 to, i64 cap) {
+    g[from].push_back({ from, to, cap, (i64)(g[to].size()) });
+    g[to].push_back({ to, from, 0, (i64)(g[from].size() - 1) });
   }
-  const vector<E>& operator[](int i) const { return G[i]; }
-  vector<E>& operator[](int i) { return G[i]; }
-  int N() const { return G.size(); }
-};
-
-template<class C>
-struct net_edge : edge_base {
-  C cap;
-  int rev;
-  net_edge(int f,int t,C c,int r) {
-    from = f;
-    to = t;
-    cap = c;
-    rev = r;
-  }
-};
-
-template<class C>
-struct network : public graph<net_edge<C>> {
-  const int s;
-  const int t;
-  template<class E, class CF>
-  network(const graph<E>& g,int s,int t, CF f) : graph<net_edge<C>>(g.N()), s(s) ,t(t) {
-    for(int i = 0;i < g.N();i++) {
-      for(auto& e : g[i]) {
-        this->add_edge(net_edge<C>(e.from,e.to,f(e),this->G[e.to].size()));
-        this->add_edge(net_edge<C>(e.to,e.from,C(),this->G[e.from].size() - 1));
-      }
-    }
-  }
-};
-
-template<class C>
-C dinic_dfs(int v, network<C>& net, const vector<int>& level, C f, vector<int> iter) {
-  if(v == net.t) return f;
-  else {
-    C now = f;
-    for(int& i = iter[v]; i < net[v].size(); i++) {
-      auto& e = net[v][i];
-      if(e.cap > C() && level[e.to] > level[e.from]) {
-        C c = min(now , e.cap);
-        C d = dinic_dfs(e.to,net,level,c);
-        e.cap -= d;
-        net[e.to][e.rev] += d;
-        now -= d;
-        if(now == 0) return f - now;
-      }
-    }
-    return f - now;
-  }
-}
-
-template<class C>
-C dinic_Mflow(network<C>& net){
-  C ans = C();
-  C inf = C();
-  int s = net.s;
-  int t = net.t;
-  int n = net.N();
-  for(auto& e : net[s]) {
-    inf += e.cap;
-  }
-  while(1) {
-    queue<int> que;
-    vector<int> level(n,-1);
-    que.push(s);
-    level[s] = 0;
-    while(!que.empty()) {
-      int v = que.front();
-      que.pop();
-      for(auto& e : net[v]) {
-        if(e.cap > C() && level[e.to] == -1) {
-          level[e.to] = level[e.from] + 1;
-          que.push(e.to);
+  std::vector<int> level;
+  std::vector<int> iter;
+  capacity_type dinic_dfs(int v, capacity_type f) {
+    if(v == t) return f;
+    else {
+      capacity_type now = f;
+      for(int& i = iter[v]; i < g[v].size(); i++) {
+        auto& e = g[v][i];
+        if(e.cap > 0 && level[e.to] > level[e.from]) {
+          capacity_type c = std::min(now , e.cap);
+          capacity_type d = dinic_dfs(e.to, c);
+          e.cap -= d;
+          g[e.to][e.rev].cap += d;
+          now -= d;
+          if(now == 0) return f - now;
         }
       }
-    }
-    if(level[t] < 0) break;
-    C f;
-    while((f = dinic_dfs(s,net,level,inf)) > C()) {
-      ans += f;
+      return f - now;
     }
   }
-  return ans;
-}
+
+  capacity_type max_flow() {
+    capacity_type ans = 0;
+    capacity_type inf = 0;
+    for(auto& e : g[s]) {
+      inf += e.cap;
+    }
+    while(1) {
+      std::queue<int> que;
+      std::vector<int> level(n,-1);
+      que.push(s);
+      level[s] = 0;
+      while(!que.empty()) {
+        int v = que.front();
+        que.pop();
+        for(auto& e : g[v]) {
+          if(e.cap > 0 && level[e.to] == -1) {
+            level[e.to] = level[e.from] + 1;
+            que.push(e.to);
+          }
+        }
+      }
+      if(level[t] < 0) break;
+      capacity_type f;
+      while((f = dinic_dfs(s, inf)) > 0) {
+        ans += f;
+      }
+    }
+    return ans;
+  }
+};
+
