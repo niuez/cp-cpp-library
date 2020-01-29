@@ -155,112 +155,77 @@
 <h2><a class="header" href="#code" id="code">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
-using namespace std;
+using i64 = long long;
 
-struct edge_base {
-  int from;
-  int to;
-};
+struct dinic {
+  using capacity_type = i64;
+  struct edge {
+    i64 from;
+    i64 to;
+    capacity_type cap;
+    i64 rev;
+  };
+  i64 n;
+  i64 s, t;
+  std::vector&lt;std::vector&lt;edge&gt;&gt; g;
 
-template&lt;class E&gt;
-struct graph_base {
-  virtual void add_edge(E e) = 0;
-  virtual const vector&lt;E&gt;&amp; operator[](int i) const = 0;
-  virtual int N() const = 0;
-};
-
-template&lt;class E&gt;
-struct graph : graph_base&lt;E&gt; {
-  vector&lt;vector&lt;E&gt;&gt; G;
-  graph(int n) : G(n) {}
-  void add_edge(E e) {
-    G[e.from].push_back(e);
+  dinic(i64 n, i64 s, i64 t): n(n), s(s), t(t), g(n) {}
+  void add_edge(i64 from, i64 to, i64 cap) {
+    g[from].push_back({ from, to, cap, (i64)(g[to].size()) });
+    g[to].push_back({ to, from, 0, (i64)(g[from].size() - 1) });
   }
-  const vector&lt;E&gt;&amp; operator[](int i) const { return G[i]; }
-  vector&lt;E&gt;&amp; operator[](int i) { return G[i]; }
-  int N() const { return G.size(); }
-};
-
-template&lt;class C&gt;
-struct net_edge : edge_base {
-  C cap;
-  int rev;
-  net_edge(int f,int t,C c,int r) {
-    from = f;
-    to = t;
-    cap = c;
-    rev = r;
-  }
-};
-
-template&lt;class C&gt;
-struct network : public graph&lt;net_edge&lt;C&gt;&gt; {
-  const int s;
-  const int t;
-  template&lt;class E, class CF&gt;
-  network(const graph&lt;E&gt;&amp; g,int s,int t, CF f) : graph&lt;net_edge&lt;C&gt;&gt;(g.N()), s(s) ,t(t) {
-    for(int i = 0;i &lt; g.N();i++) {
-      for(auto&amp; e : g[i]) {
-        this-&gt;add_edge(net_edge&lt;C&gt;(e.from,e.to,f(e),this-&gt;G[e.to].size()));
-        this-&gt;add_edge(net_edge&lt;C&gt;(e.to,e.from,C(),this-&gt;G[e.from].size() - 1));
-      }
-    }
-  }
-};
-
-template&lt;class C&gt;
-C dinic_dfs(int v, network&lt;C&gt;&amp; net, const vector&lt;int&gt;&amp; level, C f, vector&lt;int&gt; iter) {
-  if(v == net.t) return f;
-  else {
-    C now = f;
-    for(int&amp; i = iter[v]; i &lt; net[v].size(); i++) {
-      auto&amp; e = net[v][i];
-      if(e.cap &gt; C() &amp;&amp; level[e.to] &gt; level[e.from]) {
-        C c = min(now , e.cap);
-        C d = dinic_dfs(e.to,net,level,c);
-        e.cap -= d;
-        net[e.to][e.rev] += d;
-        now -= d;
-        if(now == 0) return f - now;
-      }
-    }
-    return f - now;
-  }
-}
-
-template&lt;class C&gt;
-C dinic_Mflow(network&lt;C&gt;&amp; net){
-  C ans = C();
-  C inf = C();
-  int s = net.s;
-  int t = net.t;
-  int n = net.N();
-  for(auto&amp; e : net[s]) {
-    inf += e.cap;
-  }
-  while(1) {
-    queue&lt;int&gt; que;
-    vector&lt;int&gt; level(n,-1);
-    que.push(s);
-    level[s] = 0;
-    while(!que.empty()) {
-      int v = que.front();
-      que.pop();
-      for(auto&amp; e : net[v]) {
-        if(e.cap &gt; C() &amp;&amp; level[e.to] == -1) {
-          level[e.to] = level[e.from] + 1;
-          que.push(e.to);
+  std::vector&lt;int&gt; level;
+  std::vector&lt;int&gt; iter;
+  capacity_type dinic_dfs(int v, capacity_type f) {
+    if(v == t) return f;
+    else {
+      capacity_type now = f;
+      for(int&amp; i = iter[v]; i &lt; g[v].size(); i++) {
+        auto&amp; e = g[v][i];
+        if(e.cap &gt; 0 &amp;&amp; level[e.to] &gt; level[e.from]) {
+          capacity_type c = std::min(now , e.cap);
+          capacity_type d = dinic_dfs(e.to, c);
+          e.cap -= d;
+          g[e.to][e.rev].cap += d;
+          now -= d;
+          if(now == 0) return f - now;
         }
       }
-    }
-    if(level[t] &lt; 0) break;
-    C f;
-    while((f = dinic_dfs(s,net,level,inf)) &gt; C()) {
-      ans += f;
+      return f - now;
     }
   }
-  return ans;
-}
+
+  capacity_type max_flow() {
+    capacity_type ans = 0;
+    capacity_type inf = 0;
+    for(auto&amp; e : g[s]) {
+      inf += e.cap;
+    }
+    while(1) {
+      std::queue&lt;int&gt; que;
+      std::vector&lt;int&gt; level(n,-1);
+      que.push(s);
+      level[s] = 0;
+      while(!que.empty()) {
+        int v = que.front();
+        que.pop();
+        for(auto&amp; e : g[v]) {
+          if(e.cap &gt; 0 &amp;&amp; level[e.to] == -1) {
+            level[e.to] = level[e.from] + 1;
+            que.push(e.to);
+          }
+        }
+      }
+      if(level[t] &lt; 0) break;
+      capacity_type f;
+      while((f = dinic_dfs(s, inf)) &gt; 0) {
+        ans += f;
+      }
+    }
+    return ans;
+  }
+};
+
 </code></pre>
 
                     </main>
