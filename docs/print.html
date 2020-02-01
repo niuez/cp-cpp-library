@@ -5357,7 +5357,7 @@ template&lt;class T&gt;
 void build_factorial(std::vector&lt;T&gt;&amp; fact, std::vector&lt;T&gt;&amp; finv, std::vector&lt;T&gt;&amp; inv) {
   std::size_t N = fact.size();
   fact[0] = T(1);
-  for(int i = 0;i &lt; N;i++) {
+  for(int i = 1;i &lt; N;i++) {
     fact[i] = fact[i - 1] * T(i);
   }
   finv[N - 1] = T(1) / fact[N - 1];
