@@ -3,10 +3,23 @@ using namespace std;
 using i64 = long long;
 
 template<i64 M>
+constexpr i64 euinv(i64 val) {
+    i64 a = M, b = val;
+    i64 x = 0, u = 1;
+    while (b) {
+        i64 t = a / b;
+        swap(a -= t * b, b);
+        swap(x -= t * u, u);
+    }
+    return x < 0 ? x + M : x;
+}
+
+template<i64 M>
 struct modint {
   i64 a;
   constexpr modint(const i64 x = 0) noexcept: a((x % M + M) % M) {}
   constexpr i64 value() const noexcept { return a; }
+  constexpr modint inv() const noexcept { return modint(euinv<M>(a)); }
   constexpr modint pow(i64 r) const noexcept {
     modint ans(1);
     modint aa = *this;
@@ -61,6 +74,11 @@ struct modint {
   constexpr modint operator/(const modint r) const {
     return modint(*this) /= r;
   }
+
+  constexpr bool operator!=(const modint r) const {
+    return this->value() != r.value();
+  }
+
 };
 
 template<const i64 M>
