@@ -4970,10 +4970,23 @@ using namespace std;
 using i64 = long long;
 
 template&lt;i64 M&gt;
+constexpr i64 euinv(i64 val) {
+    i64 a = M, b = val;
+    i64 x = 0, u = 1;
+    while (b) {
+        i64 t = a / b;
+        swap(a -= t * b, b);
+        swap(x -= t * u, u);
+    }
+    return x &lt; 0 ? x + M : x;
+}
+
+template&lt;i64 M&gt;
 struct modint {
   i64 a;
   constexpr modint(const i64 x = 0) noexcept: a((x % M + M) % M) {}
   constexpr i64 value() const noexcept { return a; }
+  constexpr modint inv() const noexcept { return modint(euinv&lt;M&gt;(a)); }
   constexpr modint pow(i64 r) const noexcept {
     modint ans(1);
     modint aa = *this;
@@ -5028,6 +5041,11 @@ struct modint {
   constexpr modint operator/(const modint r) const {
     return modint(*this) /= r;
   }
+
+  constexpr bool operator!=(const modint r) const {
+    return this-&gt;value() != r.value();
+  }
+
 };
 
 template&lt;const i64 M&gt;
@@ -5357,7 +5375,7 @@ template&lt;class T&gt;
 void build_factorial(std::vector&lt;T&gt;&amp; fact, std::vector&lt;T&gt;&amp; finv, std::vector&lt;T&gt;&amp; inv) {
   std::size_t N = fact.size();
   fact[0] = T(1);
-  for(int i = 0;i &lt; N;i++) {
+  for(int i = 1;i &lt; N;i++) {
     fact[i] = fact[i - 1] * T(i);
   }
   finv[N - 1] = T(1) / fact[N - 1];
