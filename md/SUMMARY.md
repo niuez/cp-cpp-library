@@ -41,6 +41,7 @@
     - [Garner's Algorithm](./math/garner.md)
     - [Formal Power Series](./math/formal_power_series.md)
     - [Runtime fp](./math/runtime_fp.md)
+    - [F2FPS](./math/binfps.md)
     - [Factorial](./math/factorial.md)
     - [Convolution](./math/convolution/index.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)
