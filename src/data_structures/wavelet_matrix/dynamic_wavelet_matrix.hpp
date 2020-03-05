@@ -1,4 +1,3 @@
-#include <memory>
 #include <array>
 #include <set>
 #include <tuple>
@@ -70,10 +69,7 @@ struct dynamic_bitvector {
       node* n = new node(leaf_t { bits });
       n->sz = sz;
       n->popcnt = popcnt;
-      return node_type(n);
-    }
-
-    node(section_t sec): is_leaf(false), info(std::move(sec)) {}
+      return node_type(n); } node(section_t sec): is_leaf(false), info(std::move(sec)) {}
     node(leaf_t leaf): is_leaf(true), info(leaf) {}
 
     height_type height() const {
@@ -174,6 +170,7 @@ struct dynamic_bitvector {
 
 
   static node_type rotate(node_type x, size_type dir) {
+    x->fix();
     node_type y = x->take(1 - dir);
     node_type b = y->take(dir);
     x->swap(1 - dir, std::move(b));
@@ -342,6 +339,7 @@ struct dynamic_bitvector {
   }
 
   static node_type build(const std::vector<bits_type>& bits, size_type l, size_type r, size_type len) {
+    if(len == 0) node::new_leaf(0, 0, 0);
     //std::cout << "build " << l << " " << r << " " << len << std::endl;
     if(l + 1 >= r) {
       //std::cout << "create leaf" << std::endl;
@@ -369,6 +367,9 @@ struct dynamic_bitvector {
   static size_type rank(node_reference node, size_type pos) {
     if(node->is_leaf) {
       return node->rank(pos);
+    }
+    else if(pos == node->size()) {
+      return node->popcount();
     }
     else if(pos < node->child(0)->size()) {
       return rank(node->child(0), pos);
@@ -431,7 +432,7 @@ struct dynamic_bitvector {
 
 #include <vector>
 struct dynamic_wavelet_matrix {
-  using Integer = std::size_t;
+  using Integer = long long;
   using integer_type = Integer;
   using size_type = std::size_t;
 
@@ -510,14 +511,20 @@ public:
   integer_type quantile(size_type left, size_type right, size_type i) const {
     integer_type x = static_cast<integer_type>(0);
     for(size_type d = depth; d-- > 0;) {
-      size_type cnt = mat[d].rank(right, 0) - mat[d].rank(left, 0);
+      size_type l = mat[d].rank(left, 1);
+      size_type r = mat[d].rank(right, 1);
+      size_type cnt = (right - left) - (r - l);
       size_type k = (i < cnt) ? 0 : 1;
-      if(k == 1) {
+      if(k == 0) {
+        left -= l;
+        right -= r;
+      }
+      else {
         x |= (1 << d);
         i -= cnt;
+        left = l + spl[d];
+        right = r + spl[d];
       }
-      left = mat[d].rank(left, k) + spl[d] * k;
-      right = mat[d].rank(right, k) + spl[d] * k;
     }
     return x;
   }
@@ -577,3 +584,38 @@ public:
     return p.eq + p.mo - q.eq - q.mo;
   }
 };
+
+#include <bits/stdc++.h>
+using namespace std;
+using i64 = long long;
+#define rep(i,s,e) for(i64 (i) = (s);(i) < (e);(i)++)
+#define all(x) x.begin(),x.end()
+
+template<class T>
+static inline std::vector<T> ndvec(size_t&& n, T val) noexcept {
+  return std::vector<T>(n, std::forward<T>(val));
+}
+
+template<class... Tail>
+static inline auto ndvec(size_t&& n, Tail&&... tail) noexcept {
+  return std::vector<decltype(ndvec(std::forward<Tail>(tail)...))>(n, ndvec(std::forward<Tail>(tail)...));
+}
+
+
+int main() {
+  cin.tie(nullptr);
+  std::ios::sync_with_stdio(false);
+
+  i64 N, Q;
+  cin >> N >> Q;
+  vector<i64> A(N);
+  rep(i,0,N) cin >> A[i];
+  
+  dynamic_wavelet_matrix wm(A, 30);
+
+  while(Q--) {
+    i64 l, r, k;
+    cin >> l >> r >> k;
+    cout << wm.quantile(l, r, k) << "\n";
+  }
+}
