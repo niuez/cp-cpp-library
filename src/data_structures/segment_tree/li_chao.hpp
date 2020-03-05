@@ -1,5 +1,7 @@
 #include <functional>
 using namespace std;
+
+// doubleのときは, midを変える
 template<class T,const T ide,class Compare = greater<T>>
 struct li_chao{
   struct Line{
@@ -28,6 +30,9 @@ struct li_chao{
   li_chao(T mi , T ma) : MI(mi), MA(ma) , root(nullptr){}
  
   Node * insert(Node * p,T l,T r,Line & line){
+    if(l > r) {
+      return p;
+    }
     if(!p) return new Node(line);
     if(comp(p->line.get(l) , line.get(l)) && comp(p->line.get(r) ,line.get(r))){
       return p;
@@ -42,7 +47,7 @@ struct li_chao{
       p->lhs = insert(p->lhs , l , mid , line);
     }
     else{
-      p->rhs = insert(p->rhs , mid, r , line);
+      p->rhs = insert(p->rhs , mid + 1, r , line);
     }
     return p;
   }
@@ -56,7 +61,7 @@ struct li_chao{
     if(!p) return ide;
     T mid = (l + r) / 2;
     if(t <= mid) return comp_get(p->line.get(t) , get(p->lhs , l, mid,t));
-    else return comp_get(p->line.get(t),get(p->rhs,mid ,r , t));
+    else return comp_get(p->line.get(t),get(p->rhs,mid + 1 ,r , t));
   }
  
   T get(T x){

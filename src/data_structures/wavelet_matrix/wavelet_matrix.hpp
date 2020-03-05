@@ -109,7 +109,10 @@ public:
     for(size_type d = depth; d-- > 0;) {
       size_type cnt = mat[d].rank(right, 0) - mat[d].rank(left, 0);
       size_type k = (i < cnt) ? 0 : 1;
-      x |= (k << d);
+      if(k == 1) {
+        i -= cnt;
+        x |= (1 << d);
+      }
       left = mat[d].rank(left, k) + spl[d] * k;
       right = mat[d].rank(right, k) + spl[d] * k;
     }
