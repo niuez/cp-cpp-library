@@ -1,12 +1,10 @@
 #include <stack>
-#include <set>
-#include <string>
 
 struct swag {
 
-  using T = std::string;
+  using T = int;
   static T ide() {
-    return "";
+    return 0;
   }
   static T ope(const T& a, const T& b) {
     return a + b;
@@ -25,6 +23,10 @@ struct swag {
   }
 
   T fold() {
+    return ope(right_f.top(), left_f.top());
+  }
+
+  void pop() {
     if(right_f.size() == 1) {
       while(left_f.size() > 1) {
         right_f.push(ope(left_v.top(), right_f.top()));
@@ -33,10 +35,6 @@ struct swag {
         left_v.pop();
       }
     }
-    return ope(right_f.top(), left_f.top());
-  }
-
-  void pop() {
     right_f.pop();
     right_v.pop();
   }
