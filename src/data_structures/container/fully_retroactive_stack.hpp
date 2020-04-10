@@ -226,6 +226,7 @@ struct retroactive_stack {
   static node_index search(node_index i, height_type pos) {
     while(n[i].c[0]) {
       if(n[i][0].d.d + n[i][1].d.min_d <= pos && pos < n[i][0].d.d + n[i][1].d.max_d) {
+        pos -= n[i][0].d.d;
         i = n[i].c[1];
       }
       else {
@@ -233,6 +234,23 @@ struct retroactive_stack {
       }
     }
     return i;
+  }
+
+  static std::pair<node_index, node_index> min_depth_split(node_index i) {
+    node_index r = i;
+    size_type pos = n[i].d.min_d;
+    size_type res = 0;
+    while(n[i].c[0]) {
+      if(n[i][0].d.d + n[i][1].d.min_d <= pos && pos < n[i][0].d.d + n[i][1].d.max_d) {
+        pos -= n[i][0].d.d;
+        res += n[i][0].s;
+        i = n[i].c[1];
+      }
+      else {
+        i = n[i].c[0];
+      }
+    }
+    return split(r, res);
   }
 
   static void debug(node_index i, std::string s) {
@@ -285,12 +303,15 @@ public:
     return n[root].s;
   }
 
-  size_type stack_size() {
+  height_type stack_size() {
     return n[root].d.d;
   }
 
   value_type top() {
-    return n[search(root, n[root].d.d - 1)].d.p_value;
+    auto P = min_depth_split(root);
+    auto res = n[search(P.second, n[P.second].d.d - 1)].d.p_value;
+    root = merge(P.first, P.second);
+    return res;
   }
 
   void debug() {
@@ -335,6 +356,10 @@ int main() {
   opes.push_back(retroactive_stack::new_push_operation(3));
 
   retroactive_stack st;
+
+  st.merge(retroactive_stack::new_pop_operation());
+  st.merge(retroactive_stack::new_pop_operation());
+  st.merge(retroactive_stack::new_pop_operation());
 
   for(auto i: opes) {
     st.merge(retroactive_stack(i));
