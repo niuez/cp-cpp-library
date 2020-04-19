@@ -1,742 +1,341 @@
-#include <utility>
-#include <array>
-#include <cassert>
+#include <bits/stdc++.h>
+using namespace std;
+using i64 = long long;
+#define rep(i,s,e) for(i64 (i) = (s);(i) < (e);(i)++)
+#define all(x) x.begin(),x.end()
 
+template<class T>
+static inline std::vector<T> ndvec(size_t&& n, T val) noexcept {
+  return std::vector<T>(n, std::forward<T>(val));
+}
+
+template<class... Tail>
+static inline auto ndvec(size_t&& n, Tail&&... tail) noexcept {
+  return std::vector<decltype(ndvec(std::forward<Tail>(tail)...))>(n, ndvec(std::forward<Tail>(tail)...));
+}
+
+template<class T, class Cond>
+struct chain {
+  Cond cond; chain(Cond cond) : cond(cond) {}
+  bool operator()(T& a, const T& b) const {
+    if(cond(a, b)) { a = b; return true; }
+    return false;
+  }
+};
+template<class T, class Cond>
+chain<T, Cond> make_chain(Cond cond) { return chain<T, Cond>(cond); }
+
+#include <vector>
+#include <iostream>
+#include <string>
+#include <cassert>
 using i64 = long long;
 
-struct cluster {
-  i64 inter_weight;
-  i64 left_sum;
-  i64 right_sum;
-  i64 ans;
-  i64 length;
+namespace toptree {
+  struct cluster {
+    int length;
 
-  using V = std::size_t;
-  cluster(i64 l): inter_weight(0), ans(0), left_sum(0), right_sum(0), length(l) {}
-  cluster(i64 a, i64 b, i64 c, i64 d, i64 e): inter_weight(a), ans(b), left_sum(c), right_sum(d), length(e) {}
-  static cluster identity() {
-    return cluster(0);
-  }
-  static cluster compress(const cluster& a, const cluster& b, V av, V bv, V cv) {
-    return cluster(
-        a.inter_weight + b.inter_weight + cv,
-        a.right_sum + b.left_sum + a.length * av + b.length * bv,
-        a.left_sum + b.left_sum + a.length * (b.inter_weight + cv),
-        b.right_sum + a.right_sum + b.length * (a.inter_weight + cv),
-        a.length + b.length
-        );
-  }
-  static cluster rake(const cluster& a, const cluster& b, V av, V bv, V cv) {
-    return cluster(
-        a.inter_weight + b.inter_weight + bv,
-        0ll,
-        a.left_sum + b.right_sum + a.length * b.inter_weight + (a.length + b.length) * bv,
-        a.right_sum + b.right_sum + b.length * bv,
-        a.length
-        );
-  }
-  static cluster reverse(const cluster& c) {
-    cluster res = c;
-    std::swap(res.left_sum, res.right_sum);
-    return res;
-  }
-  static std::size_t select(const cluster& a, const cluster& b, V av, V bv, V cv) {
-    if(a.inter_weight + av + cv >= b.inter_weight + bv + cv) { return 0; }
-    else { return 1; }
-  }
-};
-
-class vertex;
-
-class node;
-int parent_dir(node*);
-node* link(vertex, vertex, cluster);
-void test_comp_set(node* n);
-
-class vertex_raw {
-  cluster::V val;
-  node* hand;
-
-public:
-
-  vertex_raw(cluster::V val): val(val), hand(nullptr) {}
-
-  node* handle() const { return this->hand; }
-  void set_handle(node* hand) { this->hand = hand; }
-  const cluster::V& value() const { return this->val; }
-  void set_value(cluster::V val) {
-    this->val = val;
-  }
-};
-
-class vertex {
-  vertex_raw* ver;
-
-private:
-
-
-public:
-
-  static vertex dangling() { return vertex(); } 
-
-  vertex(): ver(nullptr) {}
-  vertex(cluster::V val): ver( new vertex_raw(val)) {
-    vertex dummy;
-    dummy.ver = new vertex_raw(cluster::V());
-    link(*this, dummy, cluster::identity());
-  }
-
-  bool operator==(const vertex& other) { return this->ver == other.ver; }
-  
-  inline node* handle() const { return this->ver->handle(); }
-  inline void set_handle(node* hand) { this->ver->set_handle(hand); }
-  inline const cluster::V& value() const { return this->ver->value(); }
-  inline void set_value(cluster::V val) { this->ver->set_value(val); }
-};
-
-enum class Type { Compress, Rake, Edge, None };
-
-static std::size_t ni = 0;
-extern node ns[1010101];
-
-class node {
-  node* ch[2];
-  node* par;
-  node* ra;
-  node* me;
-  bool rev;
-  cluster fo;
-  vertex v[2];
-  Type ty;
-
-
-
-public:
-
-  node(): par(nullptr), ra(nullptr), me(nullptr), rev(false),
-    fo(cluster::identity()), ty(Type::None) {} 
-
-
-
-  static node* new_edge(vertex v, vertex u, cluster val) {
-    //node* n = new node();
-    node* n = ns + (ni++);
-    n->v[0] = v;
-    n->v[1] = u;
-    n->fo = val;
-    n->me = n;
-    n->ty = Type::Edge;
-
-    n->fix();
-
-    return n;
-  }
-
-  static node* new_compress(node* left, node* right) {
-    //node* n = new node();
-    node* n = ns + (ni++);
-    n->ch[0] = left;
-    n->ch[1] = right;
-    n->me = n;
-    n->ty = Type::Compress;
-    n->fix();
-    return n;
-  }
-
-  static node* new_rake(node* left, node* right) {
-    //node * n = new node();
-    node* n = ns + (ni++);
-    n->ch[0] = left;
-    n->ch[1] = right;
-    n->me = n;
-    n->ty = Type::Rake;
-    n->fix();
-    return n;
-  }
-
-  inline void fix() {
-    if(this->ty == Type::Edge) {
-      if(!this->parent()) {
-        this->endpoint(0).set_handle(this->me);
-        this->endpoint(1).set_handle(this->me);
-      }
-      else if(this->parent()->ty == Type::Compress) {
-        if(parent_dir(this->me) == -1) {
-          this->endpoint(0).set_handle(this->me);
-        }
-      }
-      else if(this->parent()->ty == Type::Rake) {
-        this->endpoint(0).set_handle(this->me);
-      }
+    using V = int;
+    cluster(i64 l = 0): length(l) {}
+    static cluster identity() {
+      return cluster(0);
     }
-    else if(this->ty == Type::Compress) {
-      this->push();
-      this->v[0] = this->child(0)->endpoint(0);
-      this->v[1] = this->child(1)->endpoint(1);
-      assert(this->child(0)->endpoint(1) == this->child(1)->endpoint(0));
-
-      cluster left = this->child(0)->fold();
-      node* l = this->child(0);
-      if(this->rake()) {
-        node* r = this->rake();
-        left = cluster::rake(l->fold(), r->fold(), l->endpoint(0).value(), r->endpoint(0).value(), l->endpoint(1).value());
-      }
-      node* r = this->child(1);
-      this->fo= cluster::compress(left, r->fold(),
-          l->endpoint(0).value(), r->endpoint(1).value(), l->endpoint(1).value());
-      
-      this->child(0)->endpoint(1).set_handle(this->me);
-
-      if(!this->parent()) {
-        this->endpoint(0).set_handle(this->me);
-        this->endpoint(1).set_handle(this->me);
-      }
-      else if(this->parent()->ty == Type::Compress) {
-        if(parent_dir(this->me) == -1) {
-          this->endpoint(0).set_handle(this->me);
-        }
-      }
-      else if(this->parent()->ty == Type::Rake) {
-        this->endpoint(0).set_handle(this->me);
-      }
-
+    static V v_identity() {
+      return 0;
     }
-    else if(this->ty == Type::Rake) {
-      this->push();
-      this->v[0] = this->child(0)->endpoint(0);
-      this->v[1] = this->child(0)->endpoint(1);
-      this->fo = cluster::rake(this->child(0)->fold(), this->child(1)->fold(),
-          this->child(0)->endpoint(0).value(), this->child(1)->endpoint(0).value(), this->child(0)->endpoint(1).value());
+    static cluster compress(const cluster& a, const cluster& b, V, V, V cv) {
+      return cluster(
+          a.length + b.length + cv
+          ); }
+    static cluster rake(const cluster& a, const cluster& b, V av, V bv, V cv) {
+      return cluster(
+          a.length + b.length + bv
+          );
     }
-    else { assert(false); }
+    static cluster reverse(const cluster& c) {
+      return c;
+    }
+    static std::size_t select(const cluster&, const cluster&, V, V, V) {
+      return 0;
+    }
+  };
+
+  struct vertex;
+  struct node;
+
+  using size_type = std::size_t;
+  using node_index = std::uint_least32_t;
+  using vertex_index = std::uint_least32_t;
+
+  extern struct vertex v[404040];
+  extern size_type vi;
+  extern struct node n[2020202];
+  extern size_type ni;
+  extern node_index guard;
+
+  void link(node_index a, node_index b, cluster weight);
+
+  struct vertex {
+    cluster::V val;
+    node_index hn;
+  };
+
+   vertex_index new_vertex(cluster::V val) {
+    v[vi++] = { val, 0 };
+    v[vi++] = { cluster::v_identity(), 0 };
+    link(vi - 2, vi - 1, cluster::identity());
+    return vi - 2;
   }
 
-  inline void push() {
-    if(this->ty == Type::Compress) {
-      if(this->rev) {
-        std::swap(this->ch[0], this->ch[1]);
-        this->child(0)->reverse();
-        this->child(1)->reverse();
-        this->rev = false;
-      }
+
+  enum class type { Compress, Rake, Edge };
+
+
+  struct node {
+    node_index i;
+    node_index c[4];
+    bool rev;
+    cluster f;
+    vertex_index v[2];
+    type ty;
+
+    inline node& operator[](size_type d) { return n[c[d]]; }
+    inline vertex& operator()(size_type d) { return toptree::v[this->v[d]]; }
+  };
+
+  inline node_index new_node(type ty) {
+    node_index i = ni++;
+    n[i].i = i;
+    n[i].ty = ty;
+    return i;
+  }
+
+   void reverse(node_index i) {
+    std::swap(n[i].v[0], n[i].v[1]);
+    n[i].f = cluster::reverse(n[i].f);
+    n[i].rev ^= true;
+  }
+
+   void push(node_index i) {
+    if(n[i].ty != type::Edge && n[i].rev) {
+      std::swap(n[i].c[0], n[i].c[1]);
+      reverse(n[i].c[0]);
+      reverse(n[i].c[1]);
+      n[i].rev = false;
     }
   }
 
-  inline void reverse() {
-    if(this->ty == Type::Edge) {
-      std::swap(this->v[0], this->v[1]);
-      this->fo = cluster::reverse(this->fold());
+    void fix(node_index i) {
+    push(i);
+    if(n[i].ty == type::Compress) {
+      n[i].v[0] = n[i][0].v[0];
+      n[i].v[1] = n[i][1].v[1];
+      cluster l = n[i][0].f;
+      if(n[i].c[2])
+        l = cluster::rake(l, n[i][2].f, n[i][0](0).val, n[i][2](0).val, n[i][0](1).val);
+      n[i].f = cluster::compress(l, n[i][1].f, n[i][0](0).val, n[i][1](1).val, n[i][0](1).val);
     }
-    else if(this->ty == Type::Compress) {
-      std::swap(this->v[0], this->v[1]);
-      this->fo = cluster::reverse(this->fold());
-      this->rev ^= true;
+    if(n[i].ty == type::Rake) {
+      n[i].v[0] = n[i][0].v[0];
+      n[i].v[1] = n[i][0].v[1];
+      n[i].f = cluster::rake(n[i][0].f, n[i][1].f, n[i][0](0).val, n[i][1](0).val, n[i][0](1).val);
     }
-    else if(this->ty == Type::Rake) {
+
+    if(n[i].ty == type::Compress)
+      n[i][1](0).hn = i;
+    if(n[i].ty != type::Rake) {
+      if(!n[i].c[3])
+        n[i](0).hn = n[i](1).hn = i;
+      else if(n[i][3].ty == type::Rake || n[i][3].c[2] == n[i].i)
+        n[i](0).hn = i;
     }
-    else { assert(false); }
   }
 
-  inline node* parent() const { return this->par; }
-  inline void set_parent(node* par) { this->par = par; }
-  inline node* rake() const { return this->ra; }
-  inline void set_rake(node* rake) { this->ra = rake; }
-  inline node* child(std::size_t dir) const { return this->ch[dir]; }
-  inline void set_child(node* ch, std::size_t dir) { this->ch[dir] = ch; }
-  inline vertex endpoint(std::size_t dir) { return this->v[dir]; }
-  inline Type type() const { return this->ty; }
 
-  cluster fold() const { return this->fo; }
-
-  bool guard;
-};
-
-int parent_dir(node* child) {
-  node* par = child->parent();
-  if(par) {
-    if(par->guard) { return -1; }
-    else if(par->child(0) == child) { return 0; }
-    else if(par->child(1) == child) { return 1; }
-    else { return -1; }
+   int child_dir(node_index i) {
+    if(n[i].c[3]) {
+      if(n[i][3].c[0] == i) { return 0; }
+      else if(n[i][3].c[1] == i) { return 1; }
+      else { return 2; }
+    }
+    return 3;
   }
-  else { return -1; }
-}
 
-int parent_dir_guard(node* child) {
-  node* par = child->parent();
-  if(par) {
-    if(par->child(0) == child) { return 0; }
-    else if(par->child(1) == child) { return 1; }
-    else { return -1; }
+   void rotate(node_index x, size_type dir) {
+    node_index p = n[x].c[3];
+    int x_dir = child_dir(x);
+    node_index y = n[x].c[dir ^ 1];
+
+    n[n[y][dir].c[3] = x].c[dir ^ 1] = n[y].c[dir];
+    n[n[x].c[3] = y].c[dir] = x;
+    n[y].c[3] = p;
+    if(x_dir < 2) n[p].c[x_dir] = y;
+    fix(n[x].c[dir ^ 1]);
+    fix(x);
   }
-  else { return -1; }
-}
 
-void rotate(node* t, node* x, std::size_t dir) {
-  node* y = x->parent();
-  int par = parent_dir_guard(x);
-  t->child(dir)->push();
-  x->set_child(t->child(dir), dir ^ 1);
-  t->child(dir)->set_parent(x);
-  t->set_child(x, dir);
-  x->set_parent(t);
-  t->set_parent(y);
-  if(par != -1) {
-    y->set_child(t, par);
-  }
-  else if(y && y->type() == Type::Compress) {
-    y->set_rake(t);
-  }
-  x->fix();
-  t->fix();
-  if(y && !y->guard) { y->fix(); }
-}
-
-void splay(node* t) {
-  assert(t->type() != Type::Edge);
-  t->push();
-
-  while(parent_dir(t) != -1) {
-    node* q = t->parent();
-    if(q->type() != t->type()) break;
-    if(parent_dir(q) != -1 && q->parent() && q->parent()->type() == q->type()) {
-      node* r = q->parent();
-      if(r->parent()) r->parent()->push();
-      r->push();
-      q->push();
-      t->push();
-      int qt_dir = parent_dir(t);
-      int rq_dir = parent_dir(q);
-      if(rq_dir == qt_dir) {
-        rotate(q, r, rq_dir ^ 1);
-        rotate(t, q, qt_dir ^ 1);
+   void splay(node_index i) {
+    push(i);
+    int i_dir;
+    int j_dir;
+    while(child_dir(i) < 2 && n[i].c[3] != guard && n[i].ty == n[i][3].ty) {
+      node_index j = n[i].c[3];
+      if(child_dir(j) < 2 && n[j].c[3] != guard && n[j].ty == n[j][3].ty) {
+        node_index k = n[j].c[3];
+        push(k), push(j), push(i);
+        i_dir = child_dir(i);
+        j_dir = child_dir(j);
+        if(i_dir == j_dir) rotate(k, j_dir ^ 1), rotate(j, i_dir ^ 1);
+        else rotate(j, i_dir ^ 1), rotate(k, j_dir ^ 1);
       }
+      else push(j), push(i), rotate(j, child_dir(i) ^ 1);
+    }
+    fix(i);
+  }
+
+   node_index expose_raw(node_index i) {
+    while(true) {
+      if(n[i].ty == type::Compress) splay(i);
+      node_index p = n[i].c[3];
+      if(!p) break;
+      else if(n[p].ty == type::Rake) {
+        splay(p);
+        p = n[p].c[3];
+      }
+      else if(p == toptree::guard && child_dir(i) < 2) break;
+
+      splay(p);
+
+      int dir = child_dir(p);
+      dir = (dir >= 2 || n[p][3].ty == type::Rake) ? 0 : dir;
+      if(dir == 1) {
+        reverse(n[p].c[dir]);
+        push(n[p].c[dir]);
+        reverse(i);
+        push(i);
+      }
+
+      int i_dir = child_dir(i);
+      int x = n[i].c[3];
+      int m = n[p].c[dir];
+
+      n[n[m].c[3] = x].c[i_dir] = m;
+      n[n[i].c[3] = p].c[dir] = i;
+      fix(m); fix(x); fix(i); fix(p);
+      if(n[i].ty == type::Edge) {
+        i = p;
+      }
+    }
+    return i;
+  }
+
+   node_index expose(vertex_index i) {
+    return expose_raw(v[i].hn);
+  }
+
+   void soft_expose(vertex_index a, vertex_index b) {
+    node_index r = expose(a);
+    if(v[a].hn == v[b].hn) {
+      if(n[r].c[1] == a || n[r].c[0] == b) reverse(r), push(r);
+      return;
+    }
+    guard = r;
+    node_index s = expose(b);
+    guard = ~0;
+    fix(r);
+    if(child_dir(s) == 0) reverse(r), push(r);
+  }
+
+   void link(vertex_index a, vertex_index b, cluster weight) {
+    node_index e = new_node(type::Edge);
+    n[e].v[0] = a; n[e].v[1] = b; n[e].f = weight;
+    if(!v[a].hn && !v[b].hn) { fix(e); return; }
+    node_index na = v[a].hn;
+    node_index nb = v[b].hn;
+    node_index left;
+    for(int dir = 0; dir < 2; dir++) {
+      if(!nb) left = e;
       else {
-        rotate(t, q, qt_dir ^ 1);
-        rotate(t, r, rq_dir ^ 1);
-      }
-    }
-    else {
-      if(q->parent()) q->parent()->push();
-      q->push();
-      t->push();
-      int qt_dir = parent_dir(t);
-      rotate(t, q, qt_dir ^ 1);
-    }
-  }
-}
-
-node* expose_raw(node* t) {
-  while(true) {
-    assert(t->type() != Type::Rake);
-    if(t->type() == Type::Compress) {
-      splay(t);
-    }
-    node* n = nullptr;
-    {
-      node* par = t->parent();
-      if(!par) { break; }
-      else if(par->type() == Type::Rake) {
-        par->push();
-        splay(par);
-        n = par->parent();
-      }
-      else if(par->type() == Type::Compress) {
-        par->push();
-        if(par->guard && parent_dir_guard(t) != -1) { break; }
-        n = par;
-      }
-      else { assert(false); }
-    }
-
-    splay(n);
-
-    
-    int dir = parent_dir_guard(n);
-    if(dir == -1 || n->parent()->type() == Type::Rake) dir = 0;
-    if(dir == 1) {
-      n->child(dir)->reverse();
-      n->child(dir)->push();
-      t->reverse();
-      t->push();
-    }
-    int n_dir = parent_dir(t);
-    if(n_dir != -1) {
-      node* nch = n->child(dir);
-      nch->push();
-      node* rake = t->parent();
-      rake->push();
-
-      rake->set_child(nch, n_dir);
-      nch->set_parent(rake);
-      n->set_child(t, dir);
-      t->set_parent(n);
-      nch->fix();
-      rake->fix();
-      t->fix();
-      n->fix();
-      splay(rake);
-    }
-    else {
-      node* nch = n->child(dir);
-      nch->push();
-      n->set_rake(nch);
-      nch->set_parent(n);
-      n->set_child(t, dir);
-      t->set_parent(n);
-
-      nch->fix();
-      t->fix();
-      n->fix();
-    }
-    if(t->type() == Type::Edge) {
-      t = n;
-    }
-  }
-  
-  return t;
-}
-
-node* expose(vertex ver) {
-  return expose_raw(ver.handle());
-}
-
-void soft_expose(vertex v, vertex u) {
-  node* root = expose(v);
-  if(v.handle() == u.handle()) {
-    if(root->endpoint(1) == v || root->endpoint(0) == u) {
-      root->reverse();
-      root->push();
-    }
-    return;
-  }
-  root->guard = true;
-  node* soot = expose(u);
-  root->guard = false;
-  root->fix();
-  if(parent_dir(soot) == 0) {
-    root->reverse();
-    root->push();
-  }
-}
-
-node* link(vertex v, vertex u, cluster weight) {
-  if(!v.handle() && !u.handle()) {
-    return node::new_edge(v, u, weight);
-  }
-  else {
-    node* nnu = u.handle();
-    node* nnv = v.handle();
-    node* e = node::new_edge(v, u, weight);
-    node* left = nullptr;
-
-    if(!nnu) { left = e; }
-    else {
-      node* uu = expose_raw(nnu);
-      uu->push();
-      if(uu->endpoint(1) == u) {
-        uu->reverse();
-        uu->push();
-      }
-      if(uu->endpoint(0) == u) {
-        node* nu = node::new_compress(e, uu);
-        e->set_parent(nu);
-        e->fix();
-        uu->set_parent(nu);
-        uu->fix();
-        nu->fix();
-
-        left = nu;
-      }
-      else {
-        node* nu = uu;
-        node* left_ch = nu->child(0);
-        left_ch->push();
-
-        nu->set_child(e, 0);
-        e->set_parent(nu);
-        e->fix();
-        
-        node* beta = nu->rake();
-        node* rake = nullptr;
-        if(beta) {
-          beta->push();
-          rake = node::new_rake(beta, left_ch);
-          beta->set_parent(rake);
-          left_ch->set_parent(rake);
-          beta->fix();
-          left_ch->fix();
+        nb = expose_raw(nb);
+        if(n[nb].v[dir ^ 1] == b) {
+          reverse(nb);
+          push(nb);
+        }
+        if(n[nb].v[dir] == b) {
+          left = new_node(type::Compress);
+          n[left].c[dir] = e; n[left].c[dir ^ 1] = nb;
+          n[e].c[3] = n[nb].c[3] = left;
+          fix(e); fix(nb); fix(left);
         }
         else {
-          rake = left_ch;
-        }
-        nu->set_rake(rake);
-        rake->set_parent(nu);
-        rake->fix();
-        nu->fix();
-
-        left = nu;
-      }
-    }
-
-    if(!nnv) {}
-    else {
-      node* vv =expose_raw(nnv);
-      vv->push();
-      if(vv->endpoint(0) == v) {
-        vv->reverse();
-        vv->push();
-      }
-      if(vv->endpoint(1) == v) {
-        node* top = node::new_compress(vv, left);
-        vv->set_parent(top);
-        left->set_parent(top);
-        vv->fix();
-        left->fix();
-        top->fix();
-      }
-      else {
-        node* nv = vv;
-        node* right_ch = nv->child(1);
-        right_ch->reverse();
-        right_ch->push();
-
-        nv->set_child(left, 1);
-        left->set_parent(nv);
-        left->fix();
-
-        node* alpha = nv->rake();
-        node* rake = nullptr;
-        if(alpha) {
-          alpha->push();
-          rake = node::new_rake(alpha, right_ch);
-          alpha->set_parent(rake);
-          alpha->fix();
-          right_ch->set_parent(rake);
-          right_ch->fix();
-        }
-        else {
-          rake = right_ch;
-        }
-        nv->set_rake(rake);
-        rake->set_parent(nv);
-        rake->fix();
-        nv->fix();
-      }
-    }
-
-    return e;
-  }
-}
-
-void bring(node* root) {
-  node* rake = root->rake();
-
-  if(!rake) {
-    node* left = root->child(0);
-    //delete root, root = nullptr;
-    left->set_parent(nullptr);
-    left->fix();
-  }
-  else if(rake->type() == Type::Compress || rake->type() == Type::Edge) {
-    rake->push();
-    node* new_right = rake;
-    new_right->reverse();
-    new_right->push();
-
-    root->set_child(new_right, 1);
-    new_right->set_parent(root);
-
-    root->set_rake(nullptr);
-
-    new_right->fix();
-    root->fix();
-  }
-  else if(rake->type() == Type::Rake) {
-    rake->push();
-    while(rake->child(1)->type() == Type::Rake) {
-      rake->child(1)->push();
-      rake = rake->child(1);
-    }
-    root->guard = true;
-    splay(rake);
-    root->guard = false;
-
-    node* new_rake = rake->child(0);
-    node* new_right = rake->child(1);
-
-    //delete rake, rake = nullptr;
-    new_right->reverse();
-    new_right->push();
-
-    root->set_child(new_right, 1);
-    new_right->set_parent(root);
-
-    root->set_rake(new_rake);
-    new_rake->set_parent(root);
-
-    new_rake->fix();
-    new_right->fix();
-    root->fix();
-  }
-}
-
-void cut(vertex v, vertex u) {
-  soft_expose(v, u);
-  node* root = v.handle();
-  root->push();
-  node* right = root->child(1);
-  right->set_parent(nullptr);
-
-  right->reverse();
-  right->push();
-
-  bring(right);
-  bring(root);
-}
-
-cluster path_query(vertex v, vertex u) {
-  soft_expose(v, u);
-  node* root = v.handle();
-  root->push();
-  if(root->endpoint(0) == v && root->endpoint(1) == u) {
-    return root->fold();
-  }
-  else if(root->endpoint(0) == v) {
-    return root->child(0)->fold();
-  }
-  else if(root->endpoint(1) == u) {
-    return root->child(1)->fold();
-  }
-  else {
-    root->child(1)->push();
-    return root->child(1)->child(0)->fold();
-  }
-}
-
-node* select_rake(node* rake, cluster& right, cluster::V& rv0, cluster::V& rv1) {
-  rake->push();
-  while(rake->type() == Type::Rake) {
-    node* l = rake->child(0);
-    node* r = rake->child(1);
-    l->push();
-    r->push();
-
-    cluster rf = cluster::rake(r->fold(), right, r->endpoint(0).value(), rv0, r->endpoint(1).value());
-    cluster::V r0 = r->endpoint(0).value();
-
-    std::size_t dir = cluster::select(l->fold(), rf, l->endpoint(0).value(), r0, l->endpoint(1).value());
-    r = rake->child(1 - dir);
-    rake = rake->child(dir);
-
-
-    right = cluster::rake(r->fold(), right, r->endpoint(0).value(), rv0, r->endpoint(1).value());
-    rv0 = r->endpoint(0).value();
-    rv1 = r->endpoint(1).value();
-
-    rake->push();
-  }
-  return rake;
-}
-
-std::pair<vertex, vertex> select(vertex v) {
-  node* n = expose(v);
-  cluster lf = cluster::identity();
-  cluster::V l0, l1;
-  bool luse = false;
-  cluster rf = cluster::identity();
-  cluster::V r0, r1;
-  bool ruse = false;
-
-  n->push();
-  while(n->type() == Type::Compress) {
-    node* a = n->child(0);
-    node* b = n->child(1);
-    node* r = n->rake();
-    a->push();
-    b->push();
-    if(r) { r->push(); }
-
-    cluster af = a->fold();
-    cluster::V a0 = a->endpoint(0).value();
-    cluster::V a1 = a->endpoint(1).value();
-    if(luse) {
-      af = cluster::compress(lf, af, l0, a1, l1);
-      a0 = l0;
-      a1 = a1;
-    }
-    cluster bf = b->fold();
-    cluster::V b0 = b->endpoint(0).value();
-    cluster::V b1 = b->endpoint(1).value();
-    if(ruse) {
-      bf = cluster::compress(bf, rf, b0, r1, b1);
-      b0 = b0;
-      b1 = r1;
-    }
-    cluster arf = af;
-    if(r) {
-      arf = cluster::rake(af, r->fold(), a0, r->endpoint(0).value(), a1);
-    }
-
-    std::size_t dir = cluster::select(arf, bf, a0, b1, a1);
-    
-    if(dir == 0) {
-      if(r) {
-        cluster rbf = cluster::reverse(bf);
-        cluster::V rb0 = b1;
-
-        cluster rrf = cluster::rake(r->fold(), rbf, r->endpoint(0).value(), rb0, r->endpoint(1).value());
-        cluster::V rr0 = r->endpoint(0).value();
-        cluster::V rr1 = r->endpoint(1).value();
-
-        dir = cluster::select(af, rrf, a0, rr0, a1);
-        if(dir == 0) {
-          rf = cluster::reverse(rrf);
-          r0 = rr1;
-          r1 = rr0;
-          ruse = true;
-          n = n->child(0);
-        }
-        else {
-          luse = false;
-          rf = cluster::rake(af, rbf, a0, rb0, a1);
-          r0 = a0;
-          r1 = a1;
-          ruse = true;
-          n = select_rake(r, rf, r0, r1);
-          rf = cluster::reverse(rf);
-          std::swap(r0, r1);
+          node_index ch = n[nb].c[dir];
+          if(dir) reverse(ch);
+          n[n[e].c[3] = nb].c[dir] = e;
+          node_index beta = n[nb].c[2];
+          node_index rake;
+          if(beta) {
+            rake = new_node(type::Rake);
+            n[rake].c[0] = beta; n[rake].c[1] = ch;
+            n[beta].c[3] = n[ch].c[3] = rake;
+            fix(beta); fix(ch);
+          }
+          else rake = ch;
+          n[n[rake].c[3] = nb].c[2] = rake;
+          fix(rake); fix(e); fix(left = nb);
         }
       }
-      else {
-        rf = bf;
-        r0 = b0;
-        r1 = b1;
-        ruse = true;
-        n = n->child(0);
-      }
+      e = left;
+      nb = na;
+      b = a;
     }
-    else {
-      lf = arf;
-      l0 = a0;
-      l1 = a1;
-      luse = true;
-      n = n->child(1);
-    }
-
-    n->push();
   }
-  return { n->endpoint(0), n->endpoint(1) };
-}
 
-node ns[1010101];
+   cluster path_query(vertex_index a, vertex_index b) {
+     soft_expose(a, b);
+     node_index r = v[a].hn;
+     if(n[r].v[0] == a && n[r].v[1] == b) return n[r].f;
+     if(n[r].v[0] == a) return n[r][0].f;
+     if(n[r].v[1] == b) return n[r][1].f;
+     push(n[r].c[1]);
+     return n[r][1][0].f;
+   }
 
-#include <iostream>
-#include <vector>
-#include <tuple>
+   void bring(node_index r, int dir) {
+     node_index i = n[r].c[2];
+     if(!i) {
+       i = n[r].c[dir ^ 1];
+       n[i].c[3] = 0;
+       fix(i);
+     }
+     else if(n[i].ty == type::Rake) {
+       while(push(i), n[i][1].ty == type::Rake) i = n[i].c[1];
+       splay(i);
+       n[n[i][0].c[3] = r].c[2] = n[i].c[0];
+       if(dir) reverse(n[i].c[1]);
+       n[n[i][1].c[3] = r].c[dir] = n[i].c[1];
+       fix(n[r].c[2]); fix(n[r].c[dir]); fix(r);
+     }
+     else {
+       if(dir) reverse(i);
+       n[n[i].c[3] = r].c[dir] = i;
+       n[r].c[2] = 0;
+       fix(n[r].c[dir]); fix(r);
+     }
+   }
 
-using namespace std;
+   void cut(vertex_index a, vertex_index b) {
+     soft_expose(a, b);
+     node_index r = v[a].hn;
+     node_index s = v[b].hn;
+     push(s);
+     n[s].c[3] = 0;
+     n[r].c[1] = 0;
+     bring(r, 1);
+     bring(s, 0);
+   }
 
-
-int main() {
+   int all_tree(vertex_index a) {
+     expose(a);
+     return n[v[a].hn].f.length + n[v[a].hn](0).val + n[v[a].hn](1).val;
+   }
 }
