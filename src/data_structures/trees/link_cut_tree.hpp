@@ -1,206 +1,214 @@
+#include <cstdint>
+#include <utility>
+#include <string>
+#include <iostream>
+
+using i64 = long long;
+
+namespace lctree {
+
+  struct R {
+    i64 a;
+    R(): a(0) {}
+    R(i64 a): a(a) {}
+  };
+  struct V {
+    i64 a;
+    V(): a(0) {}
+    V(i64 a): a(a) {}
+  };
+  inline V compress(const V& a, const V& b) { return V(a.a + b.a); }
+  inline V rake_merge(const V& a, const R& b) { return V(a.a); }
+  inline V reverse(const V& a) { return a; }
+  inline void rake_plus(R& a, const V& b) { a.a += b.a; }
+  inline void rake_minus(R& a, const V& b) { a.a -= b.a; }
+
+  struct node;
+  extern struct node n[505050];
+  extern int ni;
+
+  using node_index = std::uint_least32_t;
+  using size_type = std::size_t;
+
+  struct node {
+    node_index c[3];
+    V v; V f; R r;
+    bool rev;
+    node(): rev(false) { c[0] = c[1] = c[2] = 0; }
+    node& operator[](int d) { return n[c[d]]; }
+  };
+
+  inline node_index new_node(V v) { n[ni].v = v; n[ni].f = v; return ni++; }
+  inline void reverse(node_index i) {
+    n[i].v = reverse(n[i].v);
+    n[i].f = reverse(n[i].f);
+    n[i].rev ^= true;
+  }
+  inline void push(node_index i) {
+    if(n[i].rev) {
+      std::swap(n[i].c[0], n[i].c[1]);
+      if(n[i].c[0]) reverse(n[i].c[0]);
+      if(n[i].c[1]) reverse(n[i].c[1]);
+      n[i].rev = false;
+    }
+  }
+  inline void fix(node_index i) {
+    push(i);
+    n[i].f = compress(compress(n[i][0].f, rake_merge(n[i].v, n[i].r)), n[i][1].f);
+  }
+
+  inline int child_dir(node_index i) {
+    if(n[i].c[2]) {
+      if(n[i][2].c[0] == i) { return 0; }
+      else if(n[i][2].c[1] == i) { return 1; }
+    }
+    return 3;
+  }
+
+  inline void rotate(node_index x, size_type dir) {
+    node_index p = n[x].c[2];
+    int x_dir = child_dir(x);
+    node_index y = n[x].c[dir ^ 1];
+
+    n[n[y][dir].c[2] = x].c[dir ^ 1] = n[y].c[dir];
+    n[n[x].c[2] = y].c[dir] = x;
+    n[y].c[2] = p;
+    if(x_dir < 2) n[p].c[x_dir] = y;
+    fix(n[x].c[dir ^ 1]);
+    fix(x);
+  }
+
+  void splay(node_index i) {
+    push(i);
+    int i_dir;
+    int j_dir;
+    while(child_dir(i) < 2) {
+      node_index j = n[i].c[2];
+      if(child_dir(j) < 2) {
+        node_index k = n[j].c[2];
+        push(k), push(j), push(i);
+        i_dir = child_dir(i);
+        j_dir = child_dir(j);
+        if(i_dir == j_dir) rotate(k, j_dir ^ 1), rotate(j, i_dir ^ 1);
+        else rotate(j, i_dir ^ 1), rotate(k, j_dir ^ 1);
+      }
+      else push(j), push(i), rotate(j, child_dir(i) ^ 1);
+    }
+    fix(i);
+  }
+
+  node_index expose(node_index i) {
+    node_index right = 0;
+    node_index ii = i;
+    while(i) {
+      splay(i);
+      rake_minus(n[i].r, n[right].f);
+      rake_plus(n[i].r, n[i][1].f);
+      n[i].c[1] = right;
+      fix(i);
+      right = i;
+      i = n[i].c[2];
+    }
+    splay(ii);
+    return ii;
+  }
+
+  void link(node_index i, node_index j) {
+    if(!i || !j) return;
+    expose(i);
+    expose(j);
+    n[n[j].c[2] = i].c[1] = j;
+    fix(i);
+  }
+
+  void cut(node_index i) {
+    if(!i) return;
+    expose(i);
+    node_index p = n[i].c[0];
+    n[i].c[0] = n[p].c[2] = 0;
+    fix(i);
+  }
+
+  void evert(node_index i) {
+    if(!i) return;
+    expose(i);
+    reverse(i);
+    push(i);
+  }
+
+  node n[505050];
+  int ni = 1;
+}
+
 #include <bits/stdc++.h>
 using namespace std;
 using i64 = long long;
+#define rep(i,s,e) for(i64 (i) = (s);(i) < (e);(i)++)
+#define all(x) x.begin(),x.end()
 
-namespace link_cut_tree {
-  struct node {
-    node* ch[2];
-    node* par;
-    bool rev;
+template<class T>
+static inline std::vector<T> ndvec(size_t&& n, T val) noexcept {
+  return std::vector<T>(n, std::forward<T>(val));
+}
 
-    i64 sz;
-    i64 val;
-    i64 fold;
+template<class... Tail>
+static inline auto ndvec(size_t&& n, Tail&&... tail) noexcept {
+  return std::vector<decltype(ndvec(std::forward<Tail>(tail)...))>(n, ndvec(std::forward<Tail>(tail)...));
+}
 
-    i64 lazy;
-    node(i64 v) {
-      ch[0] = nullptr;
-      ch[1] = nullptr;
-      par = nullptr;
-      rev = false;
-
-      sz = 1;
-      val = v;
-      fold = v;
-
-      lazy = 0;
-    }
-  };
-
-  i64 size(node* n) {
-    if(n) return n->sz;
-    return 0;
-  }
-
-  i64 fold(node* n) {
-    if(n) return n->fold;
-    return 0;
-  }
-  
-
-  void fix(node * n) {
-    if(n) {
-      /* fix operation here */
-      n->sz = 1 + size(n->ch[0]) + size(n->ch[1]);
-      n->fold = n->val + fold(n->ch[0]) + fold(n->ch[1]);
-    }
-  }
-
-  void reverse(node* n) {
-    if(n) {
-      n->rev ^= true;
-      swap(n->ch[0], n->ch[1]);
-      /* reverse operation here */
-    }
-  }
-
-  void lazy(node* n, i64 l) {
-    if(n) {
-      n->lazy += l;
-      n->val += l;
-      n->fold += l * size(n);
-    }
-  }
-
-  void push(node* n) {
-    if(n) {
-      if(n->rev) {
-        reverse(n->ch[0]);
-        reverse(n->ch[1]);
-      }
-      lazy(n->ch[0], n->lazy);
-      lazy(n->ch[1], n->lazy);
-      n->lazy = 0;
-    }
-  }
-
-  i64 pdir(node* n) {
-    if(n->par) {
-      if(n->par->ch[0] == n) return 0;
-      if(n->par->ch[1] == n) return 1;
-    }
-    return -1;
-  }
-
-  void rot(node* n, i64 dir) {
-    node* x = n->par;
-    node* y = n->par->par;
-    i64 pd = pdir(x);
-    x->ch[dir ^ 1] = n->ch[dir];
-    if(n->ch[dir]) n->ch[dir]->par = x;
-    n->ch[dir] = x;
-    x->par = n;
-    fix(x);
-    fix(n);
-    n->par = y;
-    if(pd >= 0) {
-      y->ch[pd] = n;
-      fix(y);
-    }
-  }
-
-  void splay(node* t) {
-    while(pdir(t) >= 0) {
-      node* q = t->par;
-      if(pdir(q) == -1) {
-        push(q);
-        push(t);
-        rot(t, pdir(t) ^ 1);
-      }
-      else {
-        node* r = q->par;
-        push(r);
-        push(q);
-        push(t);
-        i64 rq = pdir(q) ^ 1;
-        i64 qt = pdir(t) ^ 1;
-        if(rq == qt) {
-          rot(q, rq);
-          rot(t, qt);
-        }
-        else {
-          rot(t, qt);
-          rot(t, rq);
-        }
-      }
-    }
-  }
-
-  /* 一番上のsplay treeが[root, t]を表すようになる */
-  void expose(node* t) {
-    node* rp = nullptr;
-    for(node* cur = t; cur; cur = cur->par) {
-      splay(cur);
-      cur->ch[1] = rp;
-      fix(cur);
-      rp = cur;
-    }
-    splay(t);
-  }
-
-  void link(node* p, node* c) {
-    expose(c);
-    expose(p);
-    p->ch[1] = c;
-    c->par = p;
-  }
-  
-  /* cut edge (c->par, c) */
-  void cut(node* c) {
-    expose(c);
-    node* p = c->ch[0];
-    c->ch[0] = nullptr;
-    p->par = nullptr;
-  }
-
-  void evert(node* t) {
-    expose(t);
-    reverse(t);
-    push(t);
+template<class T, class Cond>
+struct chain {
+  Cond cond; chain(Cond cond) : cond(cond) {}
+  bool operator()(T& a, const T& b) const {
+    if(cond(a, b)) { a = b; return true; }
+    return false;
   }
 };
+template<class T, class Cond>
+chain<T, Cond> make_chain(Cond cond) { return chain<T, Cond>(cond); }
 
 int main() {
-  i64 n;
-  cin >> n;
-  
-  namespace lct = link_cut_tree;
+  std::cin.tie(nullptr);
+  std::ios::sync_with_stdio(false);
 
-  vector<lct::node*> ns;
-  for(int i = 0;i < n;i++) {
-    ns.push_back(new lct::node(0ll));
+  int N, Q;
+  cin >> N >> Q;
+  std::vector<int> v(N);
+  i64 sum = 0;
+  rep(i,0,N) {
+    i64 a;
+    cin >> a;
+    v[i] = lctree::new_node(lctree::V(a));
   }
-
-  for(int i = 0;i < n;i++) {
-    i64 k;
-    cin >> k;
-    for(int j = 0;j < k;j++) {
-      i64 c;
-      cin >> c;
-      lct::link(ns[i], ns[c]);
+  rep(i,1,N) {
+    int a, b;
+    cin >> a >> b;
+    lctree::link(v[a], v[b]);
+  }
+  rep(i,0,Q) {
+    int t;
+    cin >> t;
+    if(t == 0) {
+      int a, b, c, d;
+      cin >> a >> b >> c >> d;
+      lctree::evert(v[a]);
+      lctree::cut(v[b]);
+      lctree::evert(v[d]);
+      lctree::link(v[c], v[d]);
     }
-  }
-
-  i64 Q;
-  cin >> Q;
-  for(int q = 0; q < Q; q++) {
-    i64 type = 0;
-    cin >> type;
-    if(type == 0) {
-      i64 v, w;
-      cin >> v >> w;
-      lct::expose(ns[v]);
-      lct::lazy(ns[v], w);
-      push(ns[v]);
+    else if(t == 1) {
+      i64 u, x;
+      cin >> u >> x;
+      lctree::expose(v[u]);
+      lctree::n[v[u]].v.a += x;
+      lctree::fix(v[u]);
     }
     else {
-      i64 u;
-      cin >> u;
-      lct::expose(ns[u]);
-      i64 val = ns[u]->fold;
-      lct::expose(ns[0]);
-      val -= ns[0]->val;
-      cout << val << endl;
+      int a, b;
+      cin >> a >> b;
+      lctree::evert(v[a]);
+      lctree::expose(v[b]);
+      cout << lctree::n[v[b]].f.a << "\n";
     }
   }
 }
