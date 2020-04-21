@@ -1,4 +1,4 @@
-#include <cstdint>
+include <cstdint>
 #include <utility>
 #include <string>
 #include <iostream>
@@ -8,17 +8,17 @@ using i64 = long long;
 namespace lctree {
 
   struct R {
-    i64 a;
+    int a;
     R(): a(0) {}
-    R(i64 a): a(a) {}
+    R(int a): a(a) {}
   };
   struct V {
-    i64 a;
+    int a;
     V(): a(0) {}
-    V(i64 a): a(a) {}
+    V(int a): a(a) {}
   };
   inline V compress(const V& a, const V& b) { return V(a.a + b.a); }
-  inline V rake_merge(const V& a, const R& b) { return V(a.a); }
+  inline V rake_merge(const V& a, const R& b) { return V(a.a + b.a); }
   inline V reverse(const V& a) { return a; }
   inline void rake_plus(R& a, const V& b) { a.a += b.a; }
   inline void rake_minus(R& a, const V& b) { a.a -= b.a; }
@@ -54,7 +54,7 @@ namespace lctree {
   }
   inline void fix(node_index i) {
     push(i);
-    n[i].f = compress(compress(n[i][0].f, rake_merge(n[i].v, n[i].r)), n[i][1].f);
+    n[i].f = compress(compress(n[i][0].f, n[i].v), rake_merge(n[i][1].f, n[i].r));
   }
 
   inline int child_dir(node_index i) {
@@ -138,6 +138,11 @@ namespace lctree {
 
   node n[505050];
   int ni = 1;
+
+  int all_tree(node_index i) {
+    expose(i);
+    return n[i].f.a;
+  }
 }
 
 #include <bits/stdc++.h>
@@ -167,48 +172,122 @@ struct chain {
 template<class T, class Cond>
 chain<T, Cond> make_chain(Cond cond) { return chain<T, Cond>(cond); }
 
-int main() {
-  std::cin.tie(nullptr);
-  std::ios::sync_with_stdio(false);
+#include <cstdio>
+ 
+namespace niu {
+  char cur;
+  struct FIN {
+    static inline bool is_blank(char c) { return c <= ' '; }
+    inline char next() { return cur = getc_unlocked(stdin); }
+    inline char peek() { return cur; }
+    inline void skip() { while(is_blank(next())){} }
+#define intin(inttype)  \
+    FIN& operator>>(inttype& n) { \
+      bool sign = 0; \
+      n = 0; \
+      skip(); \
+      while(!is_blank(peek())) { \
+        if(peek() == '-') sign = 1; \
+        else n = (n << 1) + (n << 3) + (peek() & 0b1111); \
+        next(); \
+      } \
+      if(sign) n = -n; \
+      return *this; \
+    }
+intin(int)
+intin(long long)
+  } fin;
+ 
+  char tmp[128];
+  struct FOUT {
+    static inline bool is_blank(char c) { return c <= ' '; }
+    inline void push(char c) { putc_unlocked(c, stdout); }
+    FOUT& operator<<(char c) { push(c); return *this; }
+    FOUT& operator<<(const char* s) { while(*s) push(*s++); return *this; }
+#define intout(inttype) \
+    FOUT& operator<<(inttype n) { \
+      if(n) { \
+        char* p = tmp + 127; bool neg = 0; \
+        if(n < 0) neg = 1, n = -n; \
+        while(n) *--p = (n % 10) | 0b00110000, n /= 10; \
+        if(neg) *--p = '-'; \
+        return (*this) << p; \
+      } \
+      else { \
+        push('0'); \
+        return *this; \
+      } \
+    }
+intout(int)
+intout(long long)
+  } fout;
+}
 
-  int N, Q;
-  cin >> N >> Q;
-  std::vector<int> v(N);
-  i64 sum = 0;
-  rep(i,0,N) {
-    i64 a;
-    cin >> a;
-    v[i] = lctree::new_node(lctree::V(a));
+int main() {
+  using niu::fin;
+  using niu::fout;
+  i64 N, Q;
+  fin >> N;
+  vector<vector<int>> vs(N);
+  vector<int> co(N);
+  for(int i = 0;i < N;i++) {
+    lctree::new_node(1);
+    int a;
+    fin >> a;
+    a--;
+    co[i] = a;
+    vs[a].push_back(i);
   }
-  rep(i,1,N) {
-    int a, b;
-    cin >> a >> b;
-    lctree::link(v[a], v[b]);
+  vector<vector<int>> G(N);
+  for(int i = 0;i + 1 < N;i++) {
+    i64 a, b;
+    fin >> a >> b;
+    a--;
+    b--;
+    G[a].push_back(b);
+    if(co[a] != co[b])
+      G[b].push_back(a);
+    lctree::evert(b + 1);
+    lctree::link(a + 1, b + 1);
   }
-  rep(i,0,Q) {
-    int t;
-    cin >> t;
-    if(t == 0) {
-      int a, b, c, d;
-      cin >> a >> b >> c >> d;
-      lctree::evert(v[a]);
-      lctree::cut(v[b]);
-      lctree::evert(v[d]);
-      lctree::link(v[c], v[d]);
+ 
+  auto func = [&](i64 ans, i64 a, i64 b) {
+    i64 A = lctree::all_tree(a);
+    ans -= A * (A + 1) / 2;
+    lctree::evert(a);
+    lctree::cut(b);
+    i64 B = lctree::all_tree(a);
+    ans += B * (B + 1) / 2;
+    i64 C = lctree::all_tree(b);
+    ans += C * (C + 1) / 2;
+    //std::cout << A << " " << B << " " << C << std::endl;
+    return ans;
+  };
+  for(int i = 0;i < N;i++) {
+    i64 ans = (N - vs[i].size()) * ((N - vs[i].size()) + 1) / 2;
+    for(auto v: vs[i]) {
+      lctree::expose(v + 1);
+      lctree::n[v + 1].v.a = 0;
+      lctree::fix(v + 1);
     }
-    else if(t == 1) {
-      i64 u, x;
-      cin >> u >> x;
-      lctree::expose(v[u]);
-      lctree::n[v[u]].v.a += x;
-      lctree::fix(v[u]);
+    for(auto v: vs[i]) {
+      for(auto t: G[v]) {
+        ans = func(ans, v + 1, t + 1);
+      }
     }
-    else {
-      int a, b;
-      cin >> a >> b;
-      lctree::evert(v[a]);
-      lctree::expose(v[b]);
-      cout << lctree::n[v[b]].f.a << "\n";
+    //cout << ans << endl;
+    fout << (N * (N + 1) / 2) - ans << "\n";
+    for(auto v: vs[i]) {
+      lctree::expose(v + 1);
+      lctree::n[v + 1].v.a = 1;
+      lctree::fix(v + 1);
+    }
+    for(auto v: vs[i]) {
+      for(auto t: G[v]) {
+        lctree::evert(t + 1);
+        lctree::link(v + 1, t + 1);
+      }
     }
   }
 }
+ 
