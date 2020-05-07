@@ -1,5 +1,4 @@
 #include <vector>
-#include <list>
 using namespace std;
 
 template<class T, class Compare>
