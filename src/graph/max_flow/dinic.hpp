@@ -1,73 +1,67 @@
 #include <vector>
 #include <queue>
-using i64 = long long;
 
 struct dinic {
-  using capacity_type = i64;
+  using cap_type = long long;
+  const cap_type INF = 1e9;
   struct edge {
-    i64 from;
-    i64 to;
-    capacity_type cap;
-    i64 rev;
+    int from;
+    int to;
+    cap_type cap;
+    int rev;
   };
-  i64 n;
-  i64 s, t;
+  int n;
   std::vector<std::vector<edge>> g;
 
-  dinic(i64 n, i64 s, i64 t): n(n), s(s), t(t), g(n) {}
-  void add_edge(i64 from, i64 to, i64 cap) {
-    g[from].push_back({ from, to, cap, (i64)(g[to].size()) });
-    g[to].push_back({ to, from, 0, (i64)(g[from].size() - 1) });
+  dinic(int n): n(n), g(n) {}
+
+  void add_edge(int from, int to, cap_type cap, cap_type rev_cap = 0) {
+    g[from].push_back({ from, to, cap, (int)(g[to].size()) });
+    g[to].push_back({ to, from, rev_cap, (int)(g[from].size() - 1) });
   }
+  
   std::vector<int> level;
   std::vector<int> iter;
-  capacity_type dinic_dfs(int v, capacity_type f) {
-    if(v == t) return f;
-    else {
-      capacity_type now = f;
-      for(int& i = iter[v]; i < g[v].size(); i++) {
-        auto& e = g[v][i];
-        if(e.cap > 0 && level[e.to] > level[e.from]) {
-          capacity_type c = std::min(now , e.cap);
-          capacity_type d = dinic_dfs(e.to, c);
-          e.cap -= d;
-          g[e.to][e.rev].cap += d;
-          now -= d;
-          if(now == 0) return f - now;
-        }
-      }
-      return f - now;
+  cap_type dfs(const int s, const int v, cap_type mf) {
+    if(s == v || mf == 0) return mf;
+    cap_type sf = 0;
+    for(int& i = iter[v]; i < g[v].size(); i++) {
+      int t = g[v][i].to;
+      edge& re = g[v][i];
+      edge& e = g[t][re.rev];
+      if(level[t] >= level[v] || e.cap == 0) continue;
+      cap_type f = dfs(s, t, std::min(mf - sf, e.cap));
+      if(f == 0) continue;
+      e.cap -= f;
+      re.cap += f;
+      sf += f;
+      if(sf == mf) break;
     }
+    return sf;
   }
 
-  capacity_type max_flow() {
-    capacity_type ans = 0;
-    capacity_type inf = 0;
-    for(auto& e : g[s]) {
-      inf += e.cap;
-    }
-    while(1) {
-      std::queue<int> que;
-      std::vector<int> level(n,-1);
-      que.push(s);
+  cap_type max_flow(int s, int t) {
+    std::vector<int> que(n);
+    cap_type flow = 0;
+    while(true) {
+      level.assign(n, -1);
+      int qi = 0;
+      int qr = 0;
       level[s] = 0;
-      while(!que.empty()) {
-        int v = que.front();
-        que.pop();
-        for(auto& e : g[v]) {
+      que[qr++] = s;
+      while(qi < qr && level[t]) {
+        int v = que[qi++];
+        for(const auto& e: g[v]) {
           if(e.cap > 0 && level[e.to] == -1) {
-            level[e.to] = level[e.from] + 1;
-            que.push(e.to);
+            level[e.to] = level[v] + 1;
+            que[qr++] = e.to;
           }
         }
       }
-      if(level[t] < 0) break;
-      capacity_type f;
-      while((f = dinic_dfs(s, inf)) > 0) {
-        ans += f;
-      }
+      if(level[t] == -1) break;
+      iter.assign(n, 0);
+      flow += dfs(s, t, INF);
     }
-    return ans;
+    return flow;
   }
 };
-
