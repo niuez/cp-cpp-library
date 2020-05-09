@@ -2,7 +2,7 @@
 #include <iostream>
 
 struct goldberg_tarjan {
-  using cap_type = int;
+  using cap_type = long long;
   struct edge {
     int to;
     cap_type cap;
@@ -14,7 +14,9 @@ struct goldberg_tarjan {
   std::vector<std::vector<edge>> G;
   std::vector<cap_type> exc;
   std::vector<int> h;
-  const cap_type INF = 1e9;
+  std::vector<std::vector<int>> que;
+  std::vector<int> qi;
+  const cap_type INF = 1e18;
 
   goldberg_tarjan(int n): N(n), G(n) {}
   
@@ -42,13 +44,22 @@ struct goldberg_tarjan {
   }
 
   std::vector<int> Q;
-  void global_relabeling(int t) {
-    int qi = 0, qr = 0;
+  int global_relabeling(int t) {
+    for(int i = 0;i < N;i++) {
+      que[i].clear();
+      qi[i] = 0;
+    }
+    int i = 0, qr = 0;
     Q[qr++] = t;
-    h.assign(N, N - 1);
+    h.assign(N, N);
     h[t] = 0;
-    while(qi < qr) {
-      int v = Q[qi++];
+    int hi = 0;
+    while(i < qr) {
+      int v = Q[i++];
+      hi = h[v];
+      if(exc[v] > 0 && v != t) {
+        que[h[v]].push_back(v);
+      }
       for(const auto& e: G[v]) {
         if(G[e.to][e.rev].cap > 0 && h[v] + 1 < h[e.to]) {
           h[e.to] = h[v] + 1;
@@ -56,6 +67,7 @@ struct goldberg_tarjan {
         }
       }
     }
+    return hi;
   }
 
   cap_type max_flow(int s, int t) {
@@ -65,11 +77,12 @@ struct goldberg_tarjan {
     Q.resize(N);
     int cnt = 0;
 
+    que.assign(N, std::vector<int>());
+    qi.assign(N, 0);
+
     global_relabeling(t);
 
-    std::vector<std::vector<int>> que(N);
-    std::vector<int> qi(N);
-    que[h[s]].push_back(s);
+    if(h[s] == N) return 0;
 
     for(int di = h[s]; di >= 0;) {
       if(qi[di] == que[di].size()) { di--; continue; }
@@ -91,7 +104,7 @@ struct goldberg_tarjan {
       }
 
       if(++cnt % N == 0) {
-        global_relabeling(t);
+        di = global_relabeling(t);
       }
     }
     return exc[t];
@@ -126,30 +139,35 @@ struct chain {
 template<class T, class Cond>
 chain<T, Cond> make_chain(Cond cond) { return chain<T, Cond>(cond); }
 
-
 int main() {
   cin.tie(nullptr);
   std::ios::sync_with_stdio(false);
-  int L, R, M;
-  cin >> L >> R >> M;
-  goldberg_tarjan flw(L + R + 2);
-  rep(i,0,L) {
-    flw.add_edge(L + R, i, 1);
+  int H, W;
+  cin >> H >> W;
+
+  goldberg_tarjan gt(H + W + 2);
+  int s = H + W;
+  int t = s + 1;
+  vector<i64> A(H, 0);
+  rep(i,0,H) rep(j,0,W) {
+    i64 g;
+    cin >> g;
+    A[i] += g;
+    gt.add_edge(i, H + j, g);
   }
-  rep(i,0,R) {
-    flw.add_edge(i + L, L + R + 1, 1);
+  i64 sum = 0;
+  rep(i,0,H) {
+    i64 r;
+    cin >> r;
+    i64 MIN = std::min(A[i], r);
+    sum += r - MIN;
+    gt.add_edge(s, i, A[i] - MIN);
   }
-  rep(i,0,M) {
-    int a, b;
-    cin >> a >> b;
-    flw.add_edge(a, b + L, 1);
+  rep(i,0,W) {
+    i64 r;
+    cin >> r;
+    sum += r;
+    gt.add_edge(H + i, t, r);
   }
-  cout << flw.max_flow(L + R, L + R + 1) << '\n';
-  for(int i = 0;i < L;i++) {
-    for(const auto& e: flw.G[i]) {
-      if(e.cap == 0 && e.to < L + R) {
-        cout << i << " " << e.to - L << '\n';
-      }
-    }
-  }
+  cout << sum - gt.max_flow(s, t) << "\n";
 }
