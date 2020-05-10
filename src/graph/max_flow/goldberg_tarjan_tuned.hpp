@@ -1,8 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <bitset>
-
-#include <vector>
+#include <tuple>
 
 struct residual_graph {
   using cap_type = long long;
