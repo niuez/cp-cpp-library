@@ -176,32 +176,25 @@
 </ul>
 <h2><a class="header" href="#code" id="code">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
-#include &lt;set&gt;
-using namespace std;
+#include &lt;tuple&gt;
 
 struct union_find {
-  vector&lt;int&gt; par;
-  vector&lt;int&gt; rank;
-  union_find(int n) : par(n) , rank(n) {
-    for(int i = 0;i &lt; n;i++) par[i] = i;
+  std::vector&lt;int&gt; par;
+  union_find(int N): par(N, -1) {}
+  int root(int x) {
+    return par[x] &lt; 0 ? x : par[x] = root(par[x]);
   }
-  int root(int i) {
-    return par[i] == i ? i : par[i] = root(par[i]);
-  }
-  /* unite x, y return parent */
-  int unite(int x,int y) {
+  std::tuple&lt;int, int&gt; unite(int x, int y) {
     x = root(x);
     y = root(y);
-    if(x == y) return -1;
-    if(rank[x] &lt; rank[y]) {
-      par[x] = y;
-      return y;
-    }
-    else {
-      par[y] = x;
-      if(rank[x] == rank[y]) rank[x]++;
-      return x;
-    }
+    if(x == y) return { -1, -1 };
+    if(par[x] &gt; par[y]) std::swap(x, y);
+    par[x] += par[y];
+    par[y] = x;
+    return { x, y };
+  }
+  int size(int x) {
+    return -par[root(x)];
   }
 };
 </code></pre>

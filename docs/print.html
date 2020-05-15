@@ -1935,32 +1935,25 @@ namespace toptree {
 </ul>
 <h2><a class="header" href="#code-11" id="code-11">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
-#include &lt;set&gt;
-using namespace std;
+#include &lt;tuple&gt;
 
 struct union_find {
-  vector&lt;int&gt; par;
-  vector&lt;int&gt; rank;
-  union_find(int n) : par(n) , rank(n) {
-    for(int i = 0;i &lt; n;i++) par[i] = i;
+  std::vector&lt;int&gt; par;
+  union_find(int N): par(N, -1) {}
+  int root(int x) {
+    return par[x] &lt; 0 ? x : par[x] = root(par[x]);
   }
-  int root(int i) {
-    return par[i] == i ? i : par[i] = root(par[i]);
-  }
-  /* unite x, y return parent */
-  int unite(int x,int y) {
+  std::tuple&lt;int, int&gt; unite(int x, int y) {
     x = root(x);
     y = root(y);
-    if(x == y) return -1;
-    if(rank[x] &lt; rank[y]) {
-      par[x] = y;
-      return y;
-    }
-    else {
-      par[y] = x;
-      if(rank[x] == rank[y]) rank[x]++;
-      return x;
-    }
+    if(x == y) return { -1, -1 };
+    if(par[x] &gt; par[y]) std::swap(x, y);
+    par[x] += par[y];
+    par[y] = x;
+    return { x, y };
+  }
+  int size(int x) {
+    return -par[root(x)];
   }
 };
 </code></pre>
@@ -5106,11 +5099,14 @@ struct modint {
 <h1><a class="header" href="#factorial" id="factorial">factorial</a></h1>
 <h2><a class="header" href="#code-31" id="code-31">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
+#include &lt;tuple&gt;
 using i64 = long long;
 
 template&lt;class T&gt;
-void build_factorial(std::vector&lt;T&gt;&amp; fact, std::vector&lt;T&gt;&amp; finv, std::vector&lt;T&gt;&amp; inv) {
-  std::size_t N = fact.size();
+std::tuple&lt;std::vector&lt;T&gt;, std::vector&lt;T&gt;, std::vector&lt;T&gt;&gt; build_factorial(int N) {
+  std::vector&lt;T&gt; fact(N);
+  std::vector&lt;T&gt; finv(N);
+  std::vector&lt;T&gt; inv(N);
   fact[0] = T(1);
   for(int i = 1;i &lt; N;i++) {
     fact[i] = fact[i - 1] * T(i);
@@ -5122,8 +5118,8 @@ void build_factorial(std::vector&lt;T&gt;&amp; fact, std::vector&lt;T&gt;&amp; f
   for(int i = 0;i &lt; N;i++) {
     inv[i] = fact[i - 1] * finv[i];
   }
+  return std::make_tuple(std::move(fact), std::move(finv), std::move(inv));
 }
-
 </code></pre>
 <h1><a class="header" href="#convolution" id="convolution">Convolution</a></h1>
 <p>畳み込み <a href="http://kazuma8128.hatenablog.com/entry/2018/07/29/231819">参考 - 約数集合でのゼータ変換・メビウス変換的なやつと畳み込み</a></p>

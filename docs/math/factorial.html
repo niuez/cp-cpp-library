@@ -154,11 +154,14 @@
                         <h1><a class="header" href="#factorial" id="factorial">factorial</a></h1>
 <h2><a class="header" href="#code" id="code">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
+#include &lt;tuple&gt;
 using i64 = long long;
 
 template&lt;class T&gt;
-void build_factorial(std::vector&lt;T&gt;&amp; fact, std::vector&lt;T&gt;&amp; finv, std::vector&lt;T&gt;&amp; inv) {
-  std::size_t N = fact.size();
+std::tuple&lt;std::vector&lt;T&gt;, std::vector&lt;T&gt;, std::vector&lt;T&gt;&gt; build_factorial(int N) {
+  std::vector&lt;T&gt; fact(N);
+  std::vector&lt;T&gt; finv(N);
+  std::vector&lt;T&gt; inv(N);
   fact[0] = T(1);
   for(int i = 1;i &lt; N;i++) {
     fact[i] = fact[i - 1] * T(i);
@@ -170,8 +173,8 @@ void build_factorial(std::vector&lt;T&gt;&amp; fact, std::vector&lt;T&gt;&amp; f
   for(int i = 0;i &lt; N;i++) {
     inv[i] = fact[i - 1] * finv[i];
   }
+  return std::make_tuple(std::move(fact), std::move(finv), std::move(inv));
 }
-
 </code></pre>
 
                     </main>
