@@ -1,50 +1,59 @@
-#include <cstdio>
+#include <unistd.h>
 
 namespace niu {
-  char cur;
-  struct FIN {
-    static inline bool is_blank(char c) { return c <= ' '; }
-    inline char next() { return cur = getc_unlocked(stdin); }
-    inline char peek() { return cur; }
-    inline void skip() { while(is_blank(next())){} }
-#define intin(inttype)  \
-    FIN& operator>>(inttype& n) { \
-      bool sign = 0; \
-      n = 0; \
-      skip(); \
-      while(!is_blank(peek())) { \
-        if(peek() == '-') sign = 1; \
-        else n = (n << 1) + (n << 3) + (peek() & 0b1111); \
-        next(); \
-      } \
-      if(sign) n = -n; \
-      return *this; \
-    }
-intin(int)
-intin(long long)
-  } fin;
 
-  char tmp[128];
-  struct FOUT {
-    static inline bool is_blank(char c) { return c <= ' '; }
-    inline void push(char c) { putc_unlocked(c, stdout); }
-    FOUT& operator<<(char c) { push(c); return *this; }
-    FOUT& operator<<(const char* s) { while(*s) push(*s++); return *this; }
-#define intout(inttype) \
-    FOUT& operator<<(inttype n) { \
-      if(n) { \
-        char* p = tmp + 127; bool neg = 0; \
-        if(n < 0) neg = 1, n = -n; \
-        while(n) *--p = (n % 10) | 0b00110000, n /= 10; \
-        if(neg) *--p = '-'; \
-        return (*this) << p; \
-      } \
-      else { \
-        push('0'); \
-        return *this; \
-      } \
+  struct fastin {
+    static const int bufsize = 1 << 24;
+    char buf[bufsize];
+    char* iter;
+    fastin() {
+      iter = buf;
+      for(int t = 0, k; (k = read(STDIN_FILENO, buf + t, sizeof(buf)) - t) > 0; t += k);
     }
-intout(int)
-intout(long long)
+    fastin& operator>>(int& num) {
+      num = 0;
+      bool neg = false;
+      while(*iter < '+') iter++;
+      if(*iter == '-') { neg = true; iter++; }
+      else if(*iter == '+') iter++;
+      while(*iter >= '0') num = 10 * num + *(iter++) - '0';
+      if(neg) num = -num;
+      return *this;
+    } 
+  } fin;
+  struct fastout {
+    static const int bufsize = 1 << 24;
+    char buf[bufsize];
+    char* iter;
+    fastout() {
+      iter = buf;
+    }
+    ~fastout() {
+      for(int t = 0, k; (k = write(STDOUT_FILENO, buf + t, iter - buf - t)) > 0; t += k);
+    }
+    fastout& operator<<(int num) {
+      static char tmp[20];
+      if(num == 0) {
+        *(iter++) = '0';
+        return *this;
+      }
+      if(num < 0) {
+        *(iter++) = '-';
+        num = -num;
+      }
+      int i = 0;
+      while(num) {
+        tmp[i++] = num % 10;
+        num /= 10;
+      }
+      while(i--) {
+        *(iter++) = tmp[i] + '0';
+      }
+      return *this;
+    }
+    fastout& operator<<(char c) {
+      *(iter++) = c;
+      return *this;
+    }
   } fout;
 }
