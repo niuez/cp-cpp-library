@@ -66,6 +66,7 @@
     - [Strongly Connected Components](./graph/strongly_connected_components.md)
     - [Two Edge Connected](./graph/two_edge_connected.md)
     - [Two Vertex Connected](./graph/two_vertex_connected.md)
+    - [Incremental Bridge Connectivity](./graph/incremental_bridge_connectivity.md)
   - [Geometry](./geometry/geometry.md)
   - [Tech](./tech/index.md)
     - [Compression](./tech/compression.md)
