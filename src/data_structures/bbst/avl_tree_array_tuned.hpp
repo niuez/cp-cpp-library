@@ -232,3 +232,4 @@ public:
 
 avl_tree_array::node avl_tree_array::n[501010];
 avl_tree_array::size_type avl_tree_array::ni = 1;
+
