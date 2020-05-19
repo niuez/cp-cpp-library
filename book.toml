@@ -7,3 +7,4 @@ title = "cp-cpp-library Document"
 
 [output.html]
 mathjax-support = true
+google-analytics = "UA-157596444-1"
