@@ -1,4 +1,4 @@
-# Li-Chao Segment Tree
+# Li-Chao Line Add Tree
 
 ### Spec
 
