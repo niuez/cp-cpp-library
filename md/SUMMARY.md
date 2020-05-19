@@ -24,6 +24,7 @@
       - [Splay Tree Array](./data_structures/bbst/splay_tree_array.md)
       - [Splay Tree Map](./data_structures/bbst/splay_tree_map.md)
       - [AVL Tree Array](./data_structures/bbst/avl_tree_array.md)
+      - [AVL Tree Array Tuned](./data_structures/bbst/avl_tree_array_tuned.md)
       - [AVL Tree Map](./data_structures/bbst/avl_tree_map.md)
       - [AVL Tree Map Foldable](./data_structures/bbst/avl_tree_map_foldable.md)
       - [Persistent AVL Tree Array](./data_structures/bbst/persistent_avl_tree_array.md)
