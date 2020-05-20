@@ -123,22 +123,28 @@ struct euler_tour_tree {
   void cut(node_index ei) {
     int rei = ei + 1;
     auto p = split(ei);
+    std::cout << "left" << " == " << std::endl;
+    debug_tree(p.first, "");
+    std::cout << "center" << " == " << std::endl;
+    debug_tree(p.second, "");
     if(same_root(p.first, rei)) {
       auto q = split(rei);
       node_index left = q.first;
       node_index center = n[q.second].c[1];
-      node_index right = p.second;
+      node_index right = n[p.second].c[1];
       n[center].c[2] = 0;
       n[right].c[2] = 0;
+      merge_back(left, right);
     }
     else {
-      rei = n[rei].c[1];
-      n[rei].c[2] = 0;
+      ei = n[ei].c[1];
+      n[ei].c[2] = 0;
       auto q = split(rei);
       node_index left = p.first;
       node_index center = q.first;
-      node_index right = q.second;
+      node_index right = n[q.second].c[1];
       n[right].c[2] = 0;
+      merge_back(left, right);
     }
   }
 
@@ -162,8 +168,15 @@ int main() {
 
   ett.link(0, 1);
   ett.link(1, 2);
-  ett.link(1, 3);
+  int ei = ett.link(1, 3);
   ett.link(0, 4);
+  std::cout << "cut" << std::endl;
+  euler_tour_tree::reroot(4);
+  ett.cut(ei);
   euler_tour_tree::reroot(1);
+  std::cout << "result" << std::endl;
   ett.debug_tree(1, "");
+  std::cout << "result3" << std::endl;
+  euler_tour_tree::reroot(4);
+  ett.debug_tree(4, "");
 }
