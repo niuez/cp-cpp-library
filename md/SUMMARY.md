@@ -36,9 +36,13 @@
     - [Wavelet Matrix](./data_structures/wavelet_matrix/index.md)
       - [Wavelet Matrix](./data_structures/wavelet_matrix/wavelet_matrix.md)
       - [Dynamic Wavelet Matrix](./data_structures/wavelet_matrix/dynamic_wavelet_matrix.md)
+    - [Container](./data_structures/container/fully_retroactive_stack.md)
+      - [Fully Retroactive Stack](./data_structures/container/fully_retroactive_stack.md)
+      - [Hash Map](./data_structures/container/hash_map.md)
     - [Other](./data_structures/other/index.md)
       - [SWAG](./data_structures/other/swag.md)
       - [Fenwick Tree](./data_structures/other/fenwick_tree.md)
+      - [Online Dynamic Connectivity](./data_structures/other/online_dicon.md)
 
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
