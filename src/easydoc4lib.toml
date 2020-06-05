@@ -1,0 +1,2 @@
+regex = "[.]*.hpp"
+out_dir = "../md2"

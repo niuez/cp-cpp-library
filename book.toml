@@ -2,7 +2,7 @@
 authors = ["niuez"]
 language = "ja"
 multilingual = false
-src = "md"
+src = "md2"
 title = "cp-cpp-library Document"
 
 [output.html]
