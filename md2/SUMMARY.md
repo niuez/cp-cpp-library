@@ -51,6 +51,7 @@
     - [Runtime fp](./math/runtime_fp.md)
     - [F2FPS](./math/binfps.md)
     - [Factorial](./math/factorial.md)
+    - [Seidel's LP Algorithm](./math/seidels_lp.md)
     - [Convolution](./math/convolution/index.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)
       - [Divisor Transform](./math/convolution/divisor_transform.md)
