@@ -53,7 +53,7 @@ struct goldberg_tarjan {
   std::vector<int> qi;
   std::vector<int> ei;
   std::vector<int> hcnt;
-  std::bitset<2048> inque;
+  std::bitset<202020> inque;
   const cap_type INF = 1e18;
 
   goldberg_tarjan(int n): N(n), G(n) {}
@@ -179,72 +179,33 @@ struct goldberg_tarjan {
     }
     return exc[t];
   }
-};
-#include <bits/stdc++.h>
-using namespace std;
-using i64 = long long;
-#define rep(i,s,e) for(i64 (i) = (s);(i) < (e);(i)++)
-#define all(x) x.begin(),x.end()
 
-template<class T>
-static inline std::vector<T> ndvec(size_t&& n, T val) noexcept {
-  return std::vector<T>(n, std::forward<T>(val));
-}
-
-template<class... Tail>
-static inline auto ndvec(size_t&& n, Tail&&... tail) noexcept {
-  return std::vector<decltype(ndvec(std::forward<Tail>(tail)...))>(n, ndvec(std::forward<Tail>(tail)...));
-}
-
-template<class T, class Cond>
-struct chain {
-  Cond cond; chain(Cond cond) : cond(cond) {}
-  bool operator()(T& a, const T& b) const {
-    if(cond(a, b)) { a = b; return true; }
-    return false;
+  void reverse_flozen(int s, int t) {
+    std::vector<int> Q(N);
+    inque = 0;
+    int Qr = 0;
+    int Qi = 0;
+    Q[Qr++] = s;
+    inque.set(s);
+    while(Qi < Qr) {
+      int v = Q[Qi++];
+      for(int i = G.iter[v]; i < G.iter[v + 1]; i++) {
+        auto& re = G[G[i].rev];
+        if(inque.test(G[i].to)) continue;
+        if(re.cap > 0) {
+          inque.set(G[i].to);
+          Q[Qr++] = G[i].to;
+        }
+      }
+    }
+    while(Qi-- > 1) {
+      int v = Q[Qi];
+      inque.reset(v);
+      if(v == t) continue;
+      for(int i = G.iter[v]; i < G.iter[v + 1] && exc[v] > 0; i++) {
+        if(G[i].cap > 0 && inque[G[i].to]) push(v, i);
+      }
+    }
+    exc[s] = 0;
   }
 };
-template<class T, class Cond>
-chain<T, Cond> make_chain(Cond cond) { return chain<T, Cond>(cond); }
-
-#ifndef LOCAL
-#define getchar getchar_unlocked
-#endif
-
-int getint() {
-    char c;
-    while (not isdigit(c = getchar()))
-        ;
-    int res = c - '0';
-    while (isdigit(c = getchar())) res = res * 10 + (c - '0');
-    return res;
-}
-
-
-int main() {
-  int H = getint(), W = getint();
-
-  goldberg_tarjan gt(H + W + 2);
-  int s = H + W;
-  int t = s + 1;
-  vector<i64> A(H, 0);
-  rep(i,0,H) rep(j,0,W) {
-    int g = getint();
-    A[i] += g;
-    gt.add_edge(i, H + j, g);
-  }
-  i64 sum = 0;
-  rep(i,0,H) {
-    i64 r = getint();
-    i64 MIN = std::min(A[i], r);
-    sum += r - MIN;
-    gt.add_edge(s, i, A[i] - MIN);
-  }
-  rep(i,0,W) {
-    i64 r = getint();
-    sum += r;
-    gt.add_edge(H + i, t, r);
-  }
-  gt.build();
-  cout << sum - gt.max_flow(s, t) << "\n";
-}
