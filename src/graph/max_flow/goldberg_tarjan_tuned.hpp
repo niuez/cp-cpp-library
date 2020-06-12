@@ -128,10 +128,17 @@ struct goldberg_tarjan {
     }
   }
 
-
-  cap_type max_flow(int s, int t) {
+  cap_type max_preflow(int s, int t) {
     exc.assign(N, 0);
     exc[s] = INF;
+    return max_flow(s, t);
+  }
+
+  cap_type reset_exc(int t) {
+    exc[t] = 0;
+  }
+
+  cap_type max_flow(int s, int t) {
     h.assign(N, 0);
     int cnt = 0;
 
@@ -178,34 +185,5 @@ struct goldberg_tarjan {
       }
     }
     return exc[t];
-  }
-
-  void reverse_flozen(int s, int t) {
-    std::vector<int> Q(N);
-    inque = 0;
-    int Qr = 0;
-    int Qi = 0;
-    Q[Qr++] = s;
-    inque.set(s);
-    while(Qi < Qr) {
-      int v = Q[Qi++];
-      for(int i = G.iter[v]; i < G.iter[v + 1]; i++) {
-        auto& re = G[G[i].rev];
-        if(inque.test(G[i].to)) continue;
-        if(re.cap > 0) {
-          inque.set(G[i].to);
-          Q[Qr++] = G[i].to;
-        }
-      }
-    }
-    while(Qi-- > 1) {
-      int v = Q[Qi];
-      inque.reset(v);
-      if(v == t) continue;
-      for(int i = G.iter[v]; i < G.iter[v + 1] && exc[v] > 0; i++) {
-        if(G[i].cap > 0 && inque[G[i].to]) push(v, i);
-      }
-    }
-    exc[s] = 0;
   }
 };
