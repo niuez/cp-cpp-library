@@ -56,7 +56,7 @@ struct goldberg_tarjan {
   std::vector<int> qi;
   std::vector<int> ei;
   std::vector<int> hcnt;
-  std::bitset<2048> inque;
+  std::bitset<202020> inque;
   const cap_type INF = 1e18;
 
   goldberg_tarjan(int n): N(n), G(n) {}
@@ -131,10 +131,17 @@ struct goldberg_tarjan {
     }
   }
 
-
-  cap_type max_flow(int s, int t) {
+  cap_type max_preflow(int s, int t) {
     exc.assign(N, 0);
     exc[s] = INF;
+    return max_flow(s, t);
+  }
+
+  cap_type reset_exc(int t) {
+    exc[t] = 0;
+  }
+
+  cap_type max_flow(int s, int t) {
     h.assign(N, 0);
     int cnt = 0;
 
@@ -183,11 +190,8 @@ struct goldberg_tarjan {
     return exc[t];
   }
 };
-#include <bits/stdc++.h>
-using namespace std;
-using i64 = long long;
-#define rep(i,s,e) for(i64 (i) = (s);(i) < (e);(i)++)
-#define all(x) x.begin(),x.end()
+```
+ine all(x) x.begin(),x.end()
 
 template<class T>
 static inline std::vector<T> ndvec(size_t&& n, T val) noexcept {

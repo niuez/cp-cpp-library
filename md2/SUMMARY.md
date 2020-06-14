@@ -57,6 +57,7 @@
       - [Divisor Transform](./math/convolution/divisor_transform.md)
       - [Fast Fourier Transform](./math/convolution/fast_fourier_transform.md)
       - [Number Theoretic Transform](./math/convolution/numeric_theoretic_transform.md)
+      - [Zeta and Mobius Transform](./math/convolution/zeta_mobius_transform.md)
   - [String](./string/index.md)
     - [2^31 Rolling Hash](./string/2_31rolling_hash.md) 
     - [Manacher](./string//manacher.md) 
