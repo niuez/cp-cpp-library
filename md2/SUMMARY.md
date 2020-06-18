@@ -79,6 +79,7 @@
     - [Strongly Connected Components](./graph/strongly_connected_components.md)
     - [Incremental Bridge Connectivity](./graph/incremental_bridge_connectivity.md)
     - [Lattice Graph](./graph/lattice_graph.md)
+    - [Range K Wall Graph](./graph/range_k_wall_graph.md)
   - [Geometry](./geometry/geometry.md)
   - [Tech](./tech/index.md)
     - [Compression](./tech/compression.md)

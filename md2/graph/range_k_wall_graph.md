@@ -1,17 +1,47 @@
+# Range-K Wall Graph
+
+[ABC170F - Pond Skater](https://atcoder.jp/contests/abc170/tasks/abc170_f)で使ったテク
+
+- 各頂点から区間\\( K \\)の中にある頂点に辺を貼る.
+- 貼るために必要な空間量は\\( O(N) \\)
+- `[start, end)`の頂点で作る
+
+
+
+## (constructor)
+
+```cpp
+range_k_wall_graph_builder(int N, int offset, int K)
+```
+
+- `N`: 貼りたい頂点の数
+- `offset`: 新たに作る頂点番号の始めの番号(`start')を指定する
+- `K`: 区間
+## init
+
+```cpp
+template<class Wall, class Idx, class Connect>
+```
+
+ハシゴを作る.
+
+- `wall(v) -> bool`: 頂点番号を受け取り, 壁であればtrueを返す
+- `idx(i) -> V`: 貼りたい頂点の数`N`に対応した頂点の番号を返す
+- `con(v, w)`: `(v, w)`の辺を貼るというコールバック
+## build_for_right
+
+各頂点\\(i (0 \leq i \le N)\\)から, \\([i, i + K]\\)に辺を貼る.
+
+## build_for_right
+
+各頂点\\(i (0 \leq i \le N)\\)から, \\([i - K, i]\\)に辺を貼る.
+
+# Code
+
+```cpp
 #include <vector>
 
-/**
- * # Range-K Wall Graph
- * 
- * [ABC170F - Pond Skater](https://atcoder.jp/contests/abc170/tasks/abc170_f)で使ったテク
- *
- * - 各頂点から区間\\( K \\)の中にある頂点に辺を貼る.
- * - 貼るために必要な空間量は\\( O(N) \\)
- * - `[start, end)`の頂点で作る
- *
- * 
- *
- **/
+
 
 struct range_k_wall_graph_builder {
   int N;
@@ -19,17 +49,7 @@ struct range_k_wall_graph_builder {
   int end;
   int K;
   
-  /**
-   * ## (constructor)
-   *
-   * ```cpp
-   * @0@
-   * ```
-   *
-   * - `N`: 貼りたい頂点の数
-   * - `offset`: 新たに作る頂点番号の始めの番号(`start')を指定する
-   * - `K`: 区間
-   **/
+
   range_k_wall_graph_builder(int N, int offset, int K)
 
     : N(N),
@@ -40,19 +60,7 @@ struct range_k_wall_graph_builder {
 
   range_k_wall_graph_builder(){}
 
-  /**
-   * ## init
-   *
-   * ```cpp
-   * @0@
-   * ```
-   *
-   * ハシゴを作る.
-   *
-   * - `wall(v) -> bool`: 頂点番号を受け取り, 壁であればtrueを返す
-   * - `idx(i) -> V`: 貼りたい頂点の数`N`に対応した頂点の番号を返す
-   * - `con(v, w)`: `(v, w)`の辺を貼るというコールバック
-   **/
+
   template<class Wall, class Idx, class Connect>
   void init(Wall wall, Idx idx, Connect con) {
     for(int i = 0; i < N; i++) {
@@ -67,12 +75,7 @@ struct range_k_wall_graph_builder {
     }
   }
   
-  /**
-   * ## build_for_right
-   *
-   * 各頂点\\(i (0 \leq i \le N)\\)から, \\([i, i + K]\\)に辺を貼る.
-   *
-   **/
+
   template<class Wall, class Idx, class Connect>
   void build_for_right(Wall wall, Idx idx, Connect con) {
     int wi = N;
@@ -89,12 +92,7 @@ struct range_k_wall_graph_builder {
     }
   }
 
-  /**
-   * ## build_for_right
-   *
-   * 各頂点\\(i (0 \leq i \le N)\\)から, \\([i - K, i]\\)に辺を貼る.
-   *
-   **/
+
   template<class Wall, class Idx, class Connect>
   void build_for_left(Wall wall, Idx idx, Connect con) {
     int wi = -1;
@@ -111,3 +109,4 @@ struct range_k_wall_graph_builder {
     }
   }
 };
+```
