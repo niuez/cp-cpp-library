@@ -1,3 +1,10 @@
+#include <utility>
+#include <array>
+#include <cassert>
+
+using i64 = long long;
+
+
 #include <vector>
 #include <iostream>
 #include <string>
@@ -5,30 +12,30 @@
 using i64 = long long;
 
 namespace toptree {
-  struct cluster {
-    i64 length;
 
-    using V = i64;
-    cluster(i64 l = 0): length(l) {}
+  struct cluster {
+    i64 sub;
+    i64 sub_cnt;
+
+    using V = std::pair<i64, i64>;
+    cluster() {}
+    cluster(i64 a, i64 b): sub(a), sub_cnt(b) {}
     static cluster identity() {
-      return cluster(0);
+      return cluster(0, 0);
+    }
+    static cluster compress(const cluster& a, const cluster& b, V av, V bv, V cv) {
+      return cluster(a.sub + b.sub + cv.first, a.sub_cnt + b.sub_cnt + cv.second);
+    }
+    static cluster rake(const cluster& a, const cluster& b, V av, V bv, V cv) {
+      return cluster(a.sub + b.sub + bv.first, a.sub_cnt + b.sub_cnt + bv.second);
     }
     static V v_identity() {
-      return 0;
-    }
-    static cluster compress(const cluster& a, const cluster& b, V, V, V cv) {
-      return cluster(
-          a.length + b.length + cv
-          ); }
-    static cluster rake(const cluster& a, const cluster&, V, V, V) {
-      return cluster(
-          a.length
-          );
+      return { 0, 0 };
     }
     static cluster reverse(const cluster& c) {
       return c;
     }
-    static std::size_t select(const cluster&, const cluster&, V, V, V) {
+    static std::size_t select(const cluster& a, const cluster& b, V av, V bv, V cv) {
       return 0;
     }
   };
@@ -71,10 +78,25 @@ namespace toptree {
     cluster f;
     vertex_index v[2];
     type ty;
+    i64 add;
 
     inline node& operator[](size_type d) { return n[c[d]]; }
     inline vertex& operator()(size_type d) { return toptree::v[this->v[d]]; }
   };
+
+  static std::string type_string(type t) {
+    if(t == type::Compress) return "C";
+    if(t == type::Rake) return "R";
+    return "E";
+  }
+
+  static void debug_tree(node_index i, std::string ind) {
+    if(!i) return;
+    std::cout << ind << type_string(n[i].ty) << " " << i << "(" << n[i].v[0] << " " << n[i].v[1] << ")" << " = " << n[i].f.sub_cnt << std::endl;
+    debug_tree(n[i].c[0], ind + "| ");
+    debug_tree(n[i].c[1], ind + "| ");
+    debug_tree(n[i].c[2], ind + "| ");
+  }
 
   inline node_index new_node(type ty) {
     node_index i = ni++;
@@ -89,12 +111,25 @@ namespace toptree {
     n[i].rev ^= true;
   }
 
+  inline void additive(node_index i, i64 x);
+
    void push(node_index i) {
     if(n[i].ty != type::Edge && n[i].rev) {
       std::swap(n[i].c[0], n[i].c[1]);
       reverse(n[i].c[0]);
       reverse(n[i].c[1]);
       n[i].rev = false;
+    }
+    if(n[i].ty == type::Compress) {
+      additive(n[i].c[0], n[i].add);
+      additive(n[i].c[1], n[i].add);
+      if(n[i].c[2]) additive(n[i].c[2], n[i].add);
+      n[i].add = 0;
+    }
+    else if(n[i].ty == type::Rake) {
+      additive(n[i].c[0], n[i].add);
+      additive(n[i].c[1], n[i].add);
+      n[i].add = 0;
     }
   }
 
@@ -104,7 +139,7 @@ namespace toptree {
       n[i].v[0] = n[i][0].v[0];
       n[i].v[1] = n[i][1].v[1];
       cluster l = n[i][0].f;
-      if(!n[i].c[2])
+      if(n[i].c[2])
         l = cluster::rake(l, n[i][2].f, n[i][0](0).val, n[i][2](0).val, n[i][0](1).val);
       n[i].f = cluster::compress(l, n[i][1].f, n[i][0](0).val, n[i][1](1).val, n[i][0](1).val);
     }
@@ -134,6 +169,62 @@ namespace toptree {
     return 3;
   }
 
+  inline void additive(node_index i, i64 x) {
+    n[i].f.sub += x * n[i].f.sub_cnt;
+
+    auto func = [&](int dir) {
+      n[i](dir).val = { n[i](dir).val.first + n[i](dir).val.second * x, n[i](dir).val.second };
+    };
+    auto func_center = [&]() {
+      auto a = n[i][0].v[1];
+      auto b = n[i][1].v[0];
+      if(a == b)
+        v[a].val = { v[a].val.first + v[a].val.second * x, v[a].val.second };
+      else {
+        a = n[i][0].v[0];
+        v[a].val = { v[a].val.first + v[a].val.second * x, v[a].val.second };
+      }
+    };
+
+
+    if(n[i].ty == type::Edge) {
+      if(!n[i].c[3]) {
+        func(0);
+        func(1);
+      }
+      else if(n[i][3].ty == type::Compress) {
+        if(child_dir(i) == 3) {
+          func(0);
+        }
+      }
+      else if(n[i][3].ty == type::Rake) {
+        func(0);
+      }
+    }
+    else if(n[i].ty == type::Compress) {
+      n[i].add += x;
+      func_center();
+      if(!n[i].c[3]) {
+        func(0);
+        func(1);
+      }
+      else if(n[i][3].ty == type::Compress) {
+        if(child_dir(i) == 3) {
+          func(0);
+        }
+      }
+      else if(n[i][3].ty == type::Rake) {
+        func(0);
+      }
+
+    }
+    else if(n[i].ty == type::Rake) {
+      n[i].add += x;
+    }
+    else { assert(false); }
+  }
+
+
    void rotate(node_index x, size_type dir) {
     node_index p = n[x].c[3];
     int x_dir = child_dir(x);
@@ -142,9 +233,10 @@ namespace toptree {
     n[n[y][dir].c[3] = x].c[dir ^ 1] = n[y].c[dir];
     n[n[x].c[3] = y].c[dir] = x;
     n[y].c[3] = p;
-    if(x_dir < 2) n[p].c[x_dir] = y;
+    if(x_dir <= 2) n[p].c[x_dir] = y;
     fix(n[x].c[dir ^ 1]);
     fix(x);
+    if(n[x].c[3] && guard != n[x].c[3]) fix(n[x].c[3]);
   }
 
    void splay(node_index i) {
@@ -166,7 +258,20 @@ namespace toptree {
     fix(i);
   }
 
+   void pusher(node_index t) {
+     if(t && t != guard) {
+       pusher(n[t].c[3]);
+       push(t);
+     }
+   }
+
+   node_index node_root(node_index i) {
+     while(n[i].c[3]) i = n[i].c[3];
+     return i;
+   }
+
    node_index expose_raw(node_index i) {
+    pusher(i);
     while(true) {
       if(n[i].ty == type::Compress) splay(i);
       node_index p = n[i].c[3];
@@ -183,7 +288,9 @@ namespace toptree {
       dir = (dir >= 2 || n[p][3].ty == type::Rake) ? 0 : dir;
       if(dir == 1) {
         reverse(n[p].c[dir]);
+        push(n[p].c[dir]);
         reverse(i);
+        push(i);
       }
 
       int i_dir = child_dir(i);
@@ -192,7 +299,12 @@ namespace toptree {
 
       n[n[m].c[3] = x].c[i_dir] = m;
       n[n[i].c[3] = p].c[dir] = i;
-      fix(m); fix(x); fix(i); fix(p);
+      fix(m);
+      fix(x);
+      fix(i); fix(p);
+      if(n[x].ty == type::Rake) {
+        splay(x);
+      }
       if(n[i].ty == type::Edge) {
         i = p;
       }
@@ -221,17 +333,19 @@ namespace toptree {
     node_index e = new_node(type::Edge);
     n[e].v[0] = a; n[e].v[1] = b; n[e].f = weight;
     if(!v[a].hn && !v[b].hn) { fix(e); return; }
+    node_index br = node_root(v[b].hn);
+    assert(node_root(v[b].hn) != node_root(v[a].hn));
     node_index na = v[a].hn;
     node_index nb = v[b].hn;
     node_index left;
+    //debug_tree(br, "");
     for(int dir = 0; dir < 2; dir++) {
       if(!nb) left = e;
       else {
         nb = expose_raw(nb);
-        if(n[nb].v[dir ^ 1] == b) {
-          reverse(nb);
-          push(nb);
-        }
+        if(n[nb].v[dir ^ 1] == b) reverse(nb);
+        push(nb);
+
         if(n[nb].v[dir] == b) {
           left = new_node(type::Compress);
           n[left].c[dir] = e; n[left].c[dir ^ 1] = nb;
@@ -241,8 +355,10 @@ namespace toptree {
         else {
           node_index ch = n[nb].c[dir];
           if(dir) reverse(ch);
+          push(ch);
           n[n[e].c[3] = nb].c[dir] = e;
           node_index beta = n[nb].c[2];
+          push(beta);
           node_index rake;
           if(beta) {
             rake = new_node(type::Rake);
@@ -272,6 +388,7 @@ namespace toptree {
    }
 
    void bring(node_index r, int dir) {
+     push(r);
      node_index i = n[r].c[2];
      if(!i) {
        i = n[r].c[dir ^ 1];
@@ -280,156 +397,38 @@ namespace toptree {
      }
      else if(n[i].ty == type::Rake) {
        while(push(i), n[i][1].ty == type::Rake) i = n[i].c[1];
+       pusher(i);
        splay(i);
        n[n[i][0].c[3] = r].c[2] = n[i].c[0];
        if(dir) reverse(n[i].c[1]);
+       push(n[i].c[1]);
        n[n[i][1].c[3] = r].c[dir] = n[i].c[1];
        fix(n[r].c[2]); fix(n[r].c[dir]); fix(r);
      }
      else {
        if(dir) reverse(i);
+       push(i);
        n[n[i].c[3] = r].c[dir] = i;
        n[r].c[2] = 0;
        fix(n[r].c[dir]); fix(r);
      }
    }
 
-   void cut(node_index a, node_index b) {
+   void cut(vertex_index a, vertex_index b) {
      soft_expose(a, b);
      node_index r = v[a].hn;
      node_index s = v[b].hn;
+     push(r);
      push(s);
      n[s].c[3] = 0;
      n[r].c[1] = 0;
      bring(r, 1);
      bring(s, 0);
    }
-}
 
-toptree::vertex toptree::v[404040];
-toptree::size_type toptree::vi = 1;
-toptree::node toptree::n[2020202];
-toptree::size_type toptree::ni = 1;
-toptree::node_index toptree::guard = ~0;
+   i64 all_tree(vertex_index a) {
+     expose(a);
+     return n[v[a].hn].f.sub + n[v[a].hn](0).val.first + n[v[a].hn](1).val.first;
+   }
 
-#include <bits/stdc++.h>
-using namespace std;
-using i64 = long long;
-#define rep(i,s,e) for(i64 (i) = (s);(i) < (e);(i)++)
-#define all(x) x.begin(),x.end()
-
-template<class T>
-static inline std::vector<T> ndvec(size_t&& n, T val) noexcept {
-  return std::vector<T>(n, std::forward<T>(val));
-}
-
-template<class... Tail>
-static inline auto ndvec(size_t&& n, Tail&&... tail) noexcept {
-  return std::vector<decltype(ndvec(std::forward<Tail>(tail)...))>(n, ndvec(std::forward<Tail>(tail)...));
-}
-
-template<class T, class Cond>
-struct chain {
-  Cond cond; chain(Cond cond) : cond(cond) {}
-  bool operator()(T& a, const T& b) const {
-    if(cond(a, b)) { a = b; return true; }
-    return false;
-  }
-};
-#include <iostream>
-#include <vector>
-#include <tuple>
-
-using namespace std;
-
-#include <cstdio>
-
-namespace niu {
-  char cur;
-  struct FIN {
-    static inline bool is_blank(char c) { return c <= ' '; }
-    inline char next() { return cur = getc_unlocked(stdin); }
-    inline char peek() { return cur; }
-    inline void skip() { while(is_blank(next())){} }
-#define intin(inttype)  \
-    FIN& operator>>(inttype& n) { \
-      bool sign = 0; \
-      n = 0; \
-      skip(); \
-      while(!is_blank(peek())) { \
-        if(peek() == '-') sign = 1; \
-        else n = (n << 1) + (n << 3) + (peek() & 0b1111); \
-        next(); \
-      } \
-      if(sign) n = -n; \
-      return *this; \
-    }
-intin(int)
-intin(long long)
-  } fin;
-
-  char tmp[128];
-  struct FOUT {
-    static inline bool is_blank(char c) { return c <= ' '; }
-    inline void push(char c) { putc_unlocked(c, stdout); }
-    FOUT& operator<<(char c) { push(c); return *this; }
-    FOUT& operator<<(const char* s) { while(*s) push(*s++); return *this; }
-#define intout(inttype) \
-    FOUT& operator<<(inttype n) { \
-      if(n) { \
-        char* p = tmp + 127; bool neg = 0; \
-        if(n < 0) neg = 1, n = -n; \
-        while(n) *--p = (n % 10) | 0b00110000, n /= 10; \
-        if(neg) *--p = '-'; \
-        return (*this) << p; \
-      } \
-      else { \
-        push('0'); \
-        return *this; \
-      } \
-    }
-intout(int)
-intout(long long)
-  } fout;
-}
-
-template<class T, class Cond>
-chain<T, Cond> make_chain(Cond cond) { return chain<T, Cond>(cond); }
-int main() {
-  using niu::fin;
-  using niu::fout;
-  i64 N, Q;
-  fin >> N >> Q;
-  vector<int> vs(N);
-  for(int i = 0;i < N;i++) {
-    i64 a;
-    fin >> a;
-    vs[i] = toptree::new_vertex(a);
-  }
-  for(int i = 0;i + 1 < N;i++) {
-    i64 a, b;
-    fin >> a >> b;
-    toptree::link(vs[a], vs[b], toptree::cluster::identity());
-  }
-  for(int i = 0;i < Q;i++) {
-    int c, a, b;
-    fin >> c >> a >> b;
-    if(c == 0) {
-      i64 c, d;
-      fin >> c >> d;
-      toptree::cut(vs[a], vs[b]);
-      toptree::link(vs[c], vs[d], toptree::cluster::identity());
-    }
-    else if(c == 1) {
-      toptree::expose(vs[a]);
-      toptree::v[vs[a]].val += b;
-      toptree::fix(vs[a]);
-    }
-    else if(a == b) {
-      fout << toptree::v[vs[a]].val << '\n';
-    }
-    else {
-      fout << toptree::path_query(vs[a], vs[b]).length + toptree::v[vs[a]].val + toptree::v[vs[b]].val << '\n';
-    }
-  }
 }
