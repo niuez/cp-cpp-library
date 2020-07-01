@@ -74,7 +74,6 @@ struct splay_array {
     if(p) n[p].c[x_dir] = y;
     fix(n[x].c[dir ^ 1]);
     fix(x);
-    if(n[x].c[2]) fix(n[x].c[2]);
   }
 
   static void splay(node_index i) {
@@ -97,7 +96,7 @@ struct splay_array {
   }
 
   static node_index leftist_node(node_index i) {
-    if(n[i].c[0]) i = n[i].c[0];
+    if(push(i), n[i].c[0]) i = n[i].c[0];
     return i;
   }
 
@@ -123,7 +122,7 @@ struct splay_array {
 
   node_index find_by_index(size_type pos) {
     node_index i = root;
-    while(n[i][0].sz != pos) {
+    while(push(i), n[i][0].sz != pos) {
       if(pos < n[i][0].sz) {
         i = n[i].c[0];
       }
