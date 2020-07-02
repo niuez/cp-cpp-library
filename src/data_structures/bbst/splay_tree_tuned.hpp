@@ -6,8 +6,10 @@
 
 const int SPLAY_ARRAY_NODE = 1010101;
 
+template<class Key, class Value>
 struct splay_array {
-  using value_type = long long;
+  using key_type = Key;
+  using value_type = Value;
   using node_index = std::int_least32_t;
   using size_type = std::int_least32_t;
 
@@ -18,6 +20,7 @@ struct splay_array {
 
   struct node {
     node_index c[3];
+    key_type key;
     value_type val;
     value_type f;
     size_type sz;
@@ -27,8 +30,9 @@ struct splay_array {
     node& operator[](int dir) { return n[c[dir]]; }
   };
 
-  static node_index new_node(const value_type& val) {
+  static node_index new_node(const value_type& key, const value_type& val) {
     node_index i = ni++;
+    n[i].key = key;
     n[i].val = val;
     n[i].f = val;
     n[i].sz = 1;
@@ -135,6 +139,29 @@ struct splay_array {
     return i;
   }
 
+  node_index lower_bound_by_key(const key_type& key) {
+    node_index i = root;
+    node_index p = endn;
+    while(push(i), i != 0) {
+      if(i == endn) {
+        i = n[i].c[0];
+      }
+      else if(key == n[i].key) {
+        p = i;
+        break;
+      }
+      else if(key < n[i].key) {
+        p = i;
+        i = n[i].c[0];
+      }
+      else {
+        i = n[i].c[1];
+      }
+    }
+    splay(root = p);
+    return p;
+  }
+
   void splay_node(node_index i) {
     splay(root = i);
   }
@@ -179,7 +206,7 @@ struct splay_array {
       std::cout << ind << " " << 0 << std::endl;
       return;
     }
-    std::cout << ind << " " << i << " = " << n[i].val << " - " << n[i].c[2] << " " << n[i].f << std::endl;
+    std::cout << ind << " " << i << " = " << n[i].key << " -> " << n[i].val << " - " << n[i].c[2] << " " << n[i].f << std::endl;
     debug_tree(n[i].c[0], ind + "  ", cnt + 1);
     debug_tree(n[i].c[1], ind + "  ", cnt + 1);
   }
@@ -189,5 +216,7 @@ struct splay_array {
   }
 };
 
-splay_array::node splay_array::n[SPLAY_ARRAY_NODE];
-splay_array::node_index splay_array::ni = 1;
+template<class K, class V>
+typename splay_array<K, V>::node splay_array<K, V>::n[SPLAY_ARRAY_NODE];
+template<class K, class V>
+typename splay_array<K, V>::node_index splay_array<K, V>::ni = 1;
