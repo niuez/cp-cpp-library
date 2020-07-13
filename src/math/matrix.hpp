@@ -1,32 +1,30 @@
 #include <bits/stdc++.h>
 using namespace std;
-using i64 = long long;
 #define rep(i,s,e) for(i64 (i) = (s);(i) < (e);(i)++)
-#define rev(i,s,e) for(i64 (i) = (s);(i) --> (e);)
-#define all(x) x.begin(),x.end()
- 
-template<class T, const i64 N, const i64 M>
+
+template<class T>
 struct matrix {
+  int N, M;
   vector<vector<T>> mat;
-  matrix(T init = T()): mat(N, vector<T>(M, init)) {}
+  matrix(int N, int M, T init = T()): N(N), M(M), mat(N, vector<T>(M, init)) {}
   vector<T>& operator[](i64 i) { return mat[i]; }
   const vector<T>& operator[](i64 i) const { return mat[i]; }
-  static matrix<T, N, N> E() {
-    matrix<T, N, N> mat(0);
+  static matrix<T> E(int N) {
+    matrix<T> mat(N, N, 0);
     rep(i,0,N) mat[i][i] = 1;
     return mat;
   }
 };
-template<class T, const i64 L, const i64 M, const i64 N>
-matrix<T, L, N> operator*(const matrix<T, L, M>& lm, const matrix<T, M, N>& rm) {
-  matrix<T, L, N> ret;
-  rep(i, 0, L) rep(j, 0, M) rep(k, 0, N) (ret[i][k] += lm[i][j] * rm[j][k]);
+template<class T>
+matrix<T> operator*(const matrix<T>& lm, const matrix<T>& rm) {
+  matrix<T> ret(lm.N, rm.M);
+  rep(i, 0, lm.N) rep(j, 0, lm.M) rep(k, 0, rm.M) (ret[i][k] += lm[i][j] * rm[j][k]);
   return ret;
 }
  
-template<class T, const i64 N>
-matrix<T, N, N> matrix_pow(matrix<T, N, N> mat, i64 r) {
-  matrix<T, N, N> ret = matrix<T, N, N>::E();
+template<class T>
+matrix<T> matrix_pow(matrix<T> mat, i64 r) {
+  matrix<T> ret = matrix<T>::E(mat.N);
   while(r > 0) {
     if(r & 1) ret = ret * mat;
     mat = mat * mat;
