@@ -83,7 +83,7 @@
       - [GoldBerg Tarjan's Preflow Relabel](./graph/max_flow/goldberg_tarjan_tuned.md)
     - [Minimum Cost Flow](./graph/mcf/primal_dual.md)
       - [Successive Shortest Path](./graph/mcf/primal_dual.md)
-      - [Capacity Scaling Successive Shortest Path)(./graph/mcf/capacity_scaling_primal_dual.md)
+      - [Capacity Scaling Successive Shortest Path](./graph/mcf/capacity_scaling_primal_dual.md)
     - [Strongly Connected Components](./graph/strongly_connected_components.md)
     - [Incremental Bridge Connectivity](./graph/incremental_bridge_connectivity.md)
     - [Lattice Graph](./graph/lattice_graph.md)
