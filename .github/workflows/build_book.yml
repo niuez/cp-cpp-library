@@ -6,6 +6,7 @@ on:
     paths:
       - src/**
       - .github/**
+      - md2/**
 
 jobs:
   build:
