@@ -49,12 +49,12 @@ struct euler_tour_tree {
     node_index p = n[x].c[2];
     int x_dir = child_dir(x);
     node_index y = n[x].c[dir ^ 1];
-
-    n[n[y][dir].c[2] = x].c[dir ^ 1] = n[y].c[dir];
+    if(n[y].c[dir]) n[y][dir].c[2] = x;
+    n[x].c[dir ^ 1] = n[y].c[dir];
     n[n[x].c[2] = y].c[dir] = x;
     n[y].c[2] = p;
     if(x_dir < 2) n[p].c[x_dir] = y;
-    fix(n[x].c[dir ^ 1]);
+    if(n[x].c[dir ^ 1]) fix(n[x].c[dir ^ 1]);
     fix(x);
   }
 
@@ -77,8 +77,9 @@ struct euler_tour_tree {
     if(!l) return r;
     if(!r) return l;
     while(n[l].c[1]) l = n[l].c[1];
-    n[n[r].c[2] = l].c[1] = r;
     splay(l);
+    n[n[r].c[2] = l].c[1] = r;
+    fix(l);
     return l;
   }
 
@@ -86,6 +87,7 @@ struct euler_tour_tree {
     splay(i);
     node_index l = n[i].c[0];
     n[i].c[0] = n[l].c[2] = 0;
+    fix(i);
     return { l, i };
   }
 
@@ -98,7 +100,9 @@ struct euler_tour_tree {
   static bool same_root(node_index i, node_index j) {
     if(i) splay(i);
     if(j) splay(j);
-    return n[i].c[2] == j;
+    while(n[i].c[2]) i = n[i].c[2];
+    while(n[j].c[2]) j = n[j].c[2];
+    return i == j;
   }
 
   node_index n_start;
@@ -126,10 +130,6 @@ struct euler_tour_tree {
   void cut(node_index ei) {
     int rei = ei + 1;
     auto p = split(ei);
-    std::cout << "left" << " == " << std::endl;
-    debug_tree(p.first, "");
-    std::cout << "center" << " == " << std::endl;
-    debug_tree(p.second, "");
     if(same_root(p.first, rei)) {
       auto q = split(rei);
       node_index left = q.first;
@@ -140,9 +140,11 @@ struct euler_tour_tree {
       merge_back(left, right);
     }
     else {
+      splay(ei);
       ei = n[ei].c[1];
       n[ei].c[2] = 0;
       auto q = split(rei);
+      splay(p.first);
       node_index left = p.first;
       node_index center = q.first;
       node_index right = n[q.second].c[1];

@@ -33,4 +33,5 @@ i64 garner(const vector<i64> &x, vector<i64> mods, i64 mod) {
   }
   return constants.back();
 }
+
 ```
