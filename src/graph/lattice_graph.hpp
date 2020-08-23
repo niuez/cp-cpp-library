@@ -13,7 +13,7 @@ struct lattice_delta {
     const static std::vector<i64> dx { 1, 0, -1, 0 };
     i64 i = v.first;
     i64 j = v.second;
-    for(i64 q = 0; q < 2; q++) {
+    for(i64 q = 0; q < 4; q++) {
       i64 x = i + dx[q];
       i64 y = j + dx[q ^ 1];
       if(0 <= x && x < H && 0 <= y && y < W) {
