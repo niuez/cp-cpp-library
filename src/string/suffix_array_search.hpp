@@ -110,38 +110,6 @@ const std::vector<int>& sa_is(std::vector<T> s, int k) {
   return sa;
 }
 
-template<class Band>
-struct sparse_table {
-  Band ope(const Band& a, const Band b) { return std::min(a, b); }
-  int N;
-  std::vector<Band> A;
-  std::vector<int> log_t;
-  std::vector<std::vector<Band>> table;
-
-  sparse_table() {}
-  sparse_table(std::vector<Band> arr) : N(arr.size()), A(arr), log_t(arr.size() + 1) {
-    for(int i = 2;i < N + 1;i++) {
-      log_t[i] = log_t[i >> 1] + 1;
-    }
-    table.resize(N, std::vector<Band>(log_t[N] + 1));
-
-    for(int i = 0;i < N;i++) {
-      table[i][0] = arr[i];
-    }
-
-    for(int k = 1;(1 << k) <= N;k++) {
-      for(int i = 0;i + (1 << k) <= N;i++) {
-        table[i][k] = ope(table[i][k - 1], table[i + (1 << (k - 1))][k - 1]);
-      }
-    }
-  }
-  /* [s, t) */
-  Band query(int s, int t) {
-    int k = log_t[t - s];
-    return ope(table[s][k], table[t - (1 << k)][k]);
-  }
-};
-
 template<class T>
 struct suffix_array_search {
   int N;
@@ -149,9 +117,17 @@ struct suffix_array_search {
   std::vector<int> rnk;
   std::vector<int> sa;
   std::vector<int> lcp;
-  sparse_table<int> st;
 
-  void lsp_setup() {
+
+  std::vector<int> seg;
+  int seg_n;
+
+  //sparse_table<int> st;
+  
+  template<class I>
+  suffix_array_search(I b, I e, int k): str(b, e) {
+    N = str.size();
+    sa = sa_is(str, k);
     rnk.resize(N + 1);
     lcp.resize(N + 1);
 
@@ -171,16 +147,18 @@ struct suffix_array_search {
         if(h > 0) h--;
       }
     }
-
-    st = sparse_table<int>(lcp);
   }
-  
-  template<class I>
-  suffix_array_search(I b, I e, int k): str(b, e) {
-    N = str.size();
-    sa = sa_is(str, k);
 
-    //lsp_setup();
+  void build_segment() {
+    seg_n = 1;
+    while(seg_n < N + 1) seg_n <<= 1;
+    seg.resize(seg_n * 2, 1e9);
+    for(int i = 0;i + 1 < N + 1;i++) {
+      seg[i + seg_n - 1] = lcp[i + 1];
+    }
+    for(int i = seg_n - 1; i --> 0;) {
+      seg[i] = std::min(seg[(i << 1) + 1], seg[(i << 1) + 2]);
+    }
   }
 
   int compare(const std::vector<T>& t, int pos) {
@@ -213,116 +191,5 @@ struct suffix_array_search {
       }
     }
     return compare(t, sa[L]) == 0;
-  }
-
-  std::pair<int, int> get_lcp(const std::vector<T>& t, int si, int offset) {
-    int i = offset;
-    si += offset;
-    while(i < t.size() && si < N) {
-      if(t[i] != str[si]) {
-        return { i, t[i] - str[si] };
-      }
-      i++;
-      si++;
-    }
-    return { i, 0 };
-  }
-
-
-  // why slow???
-  std::pair<int, int> search(const std::vector<T>& t) {
-    int L = 0;
-    int R = N + 1;
-    int Llcp = 0;
-
-    while(R - L > 1) {
-      int M = (L + R) >> 1;
-      int nlcp = st.query(L + 1, M + 1);
-      if(Llcp < nlcp) {
-        L = M;
-      }
-      else if(Llcp > nlcp) {
-        R = M;
-      }
-      else {
-        auto p = get_lcp(t, sa[M], Llcp);
-        if(p.second >= 0) {
-          L = M;
-          Llcp = p.first;
-        }
-        else if(p.second < 0) {
-          R = M;
-        }
-      }
-    }
-
-    return { Llcp, L };
-  }
-
-  struct element {
-    int L;
-    int R;
-    int Llcp;
-    int i;
-  };
-  
-
-  // why slow???
-  std::vector<element> parallel_search(const std::vector<std::vector<T>>& t) {
-    std::vector<element> now(t.size(), { 0, N + 1, 0, 0 });
-    for(int i = 0;i < t.size(); i++)
-      now[i].i = i;
-    std::vector<element> next;
-    std::vector<element> right;
-
-    std::vector<element> ans(t.size());
-
-    while(!now.empty()) {
-      int nlcp = -1;
-      int L = 0;
-      int R = 0;
-      int M = 0;
-      for(int i = 0;i < now.size(); i++) {
-        if(now[i].R - now[i].L <= 1) {
-          ans[now[i].i] = std::move(now[i]);
-          continue;
-        }
-        if(nlcp == -1 || now[i - 1].L != now[i].L) {
-          L = now[i].L;
-          R = now[i].R;
-          M = (L + R) >> 1;
-          nlcp = st.query(L + 1, M + 1);
-          next.insert(std::end(next), std::begin(right), std::end(right));
-          right.clear();
-        }
-        if(now[i].Llcp < nlcp) {
-          now[i].L = M;
-          next.push_back(std::move(now[i]));
-        }
-        else if(now[i].Llcp > nlcp) {
-          now[i].R = M;
-          right.push_back(std::move(now[i]));
-        }
-        else {
-          auto p = get_lcp(t[now[i].i], sa[M], now[i].Llcp);
-          if(p.second >= 0) {
-            now[i].L = M;
-            now[i].Llcp = p.first;
-            next.push_back(std::move(now[i]));
-          }
-          else if(p.second < 0) {
-            now[i].R = M;
-            right.push_back(std::move(now[i]));
-          }
-        }
-      }
-
-      next.insert(std::end(next), std::begin(right), std::end(right));
-      right.clear();
-
-      std::swap(next, now);
-      next.clear();
-    }
-    return ans;
   }
 };
