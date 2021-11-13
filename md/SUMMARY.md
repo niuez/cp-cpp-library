@@ -47,6 +47,7 @@
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
     - [Matrix](./math/matrix.md)
+    - [Chinese Remainder Theorem](./math/crt.md)
     - [Garner's Algorithm](./math/garner.md)
     - [Formal Power Series](./math/formal_power_series.md)
     - [Runtime fp](./math/runtime_fp.md)
