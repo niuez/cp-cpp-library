@@ -7,5 +7,5 @@ gcdとか, modとかができます.
 ### Code
 
 ```cpp
-{{#include ../../src/math/binfps.cpp}}
+{{#include ../../src/math/binfps.hpp}}
 ```

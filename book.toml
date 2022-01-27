@@ -5,6 +5,9 @@ multilingual = false
 src = "md"
 title = "cp-cpp-library Document"
 
+[build]
+build-dir = "docs" 
+
 [output.html]
 mathjax-support = true
 google-analytics = "UA-157596444-1"

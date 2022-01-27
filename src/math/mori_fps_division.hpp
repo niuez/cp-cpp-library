@@ -1,13 +1,5 @@
 #include "formal_power_series.hpp"
 
-/**
- * # FPS Division
- *
- * - \\( P(x) / Q(x) \\) の \\( [x^N] \\)の係数を求める
- * - 時間計算量は \\( O( k \log k \log N) \\)
- * - \\( P(x) \\)は高々\\( k - 1 \\)次の多項式
- * - \\( Q(x) \\)は\\( k \\)次の多項式
- **/
 template<class T, class fps_multiply>
 T mori_fps_division(FPS<T, fps_multiply> P, FPS<T, fps_multiply> Q, std::size_t N) {
   P.bound_resize();
