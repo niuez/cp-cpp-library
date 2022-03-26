@@ -3,5 +3,5 @@
 ## Code
 
 ```cpp
-{{#include ../../src/string/Z-algorithm.hpp }}
+{{#include ../../src/string/z-algorithm.hpp }}
 ```
