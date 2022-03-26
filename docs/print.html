@@ -7106,27 +7106,57 @@ template&lt;const i64 M&gt; std::ostream&amp; operator&lt;&lt;(std::ostream&amp;
 <div style="break-before: page; page-break-before: always;"></div><h1 id="matrix"><a class="header" href="#matrix">Matrix</a></h1>
 <p>行列演算</p>
 <h3 id="code-35"><a class="header" href="#code-35">Code</a></h3>
-<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+<pre><code class="language-cpp">#include &lt;vector&gt;
 using namespace std;
-#define rep(i,s,e) for(i64 (i) = (s);(i) &lt; (e);(i)++)
+using i64 = long long;
 
 template&lt;class T&gt;
 struct matrix {
   int N, M;
   vector&lt;vector&lt;T&gt;&gt; mat;
-  matrix(int N, int M, T init = T()): N(N), M(M), mat(N, vector&lt;T&gt;(M, init)) {}
+  matrix(int N, int M, T init = T::zero()): N(N), M(M), mat(N, vector&lt;T&gt;(M, init)) {}
   vector&lt;T&gt;&amp; operator[](i64 i) { return mat[i]; }
   const vector&lt;T&gt;&amp; operator[](i64 i) const { return mat[i]; }
   static matrix&lt;T&gt; E(int N) {
-    matrix&lt;T&gt; mat(N, N, 0);
-    rep(i,0,N) mat[i][i] = 1;
+    matrix&lt;T&gt; mat(N, N, T::zero());
+    for(int i = 0; i &lt; N; i++) {
+      mat[i][i] = T::one();
+    }
     return mat;
   }
 };
+
+template&lt;class T&gt;
+matrix&lt;T&gt; operator+(const matrix&lt;T&gt;&amp; lm, const matrix&lt;T&gt;&amp; rm) {
+  matrix ret(lm.N, lm.M);
+  for(int i = 0; i &lt; lm.N; i++) {
+    for(int j = 0; j&lt; lm.M; j++) {
+      ret[i][j] = lm[i][j] + rm[i][j];
+    }
+  }
+  return ret;
+}
 template&lt;class T&gt;
 matrix&lt;T&gt; operator*(const matrix&lt;T&gt;&amp; lm, const matrix&lt;T&gt;&amp; rm) {
   matrix&lt;T&gt; ret(lm.N, rm.M);
-  rep(i, 0, lm.N) rep(j, 0, lm.M) rep(k, 0, rm.M) (ret[i][k] += lm[i][j] * rm[j][k]);
+  for(int i = 0; i &lt; lm.N; i++) {
+    for(int j = 0; j &lt; lm.M; j++) {
+      for(int k = 0; k &lt; rm.M; k++) {
+        ret[i][k] = ret[i][k] + lm[i][j] * rm[j][k];
+      }
+    }
+  }
+  return ret;
+}
+
+template&lt;class T&gt;
+matrix&lt;T&gt; operator*(const matrix&lt;T&gt;&amp; lm, const T&amp; r) {
+  matrix&lt;T&gt; ret(lm.N, lm.M);
+  for(int i = 0; i &lt; lm.N; i++) {
+    for(int j = 0; j&lt; lm.M; j++) {
+      ret[i][j] = lm[i][j] * r;
+    }
+  }
   return ret;
 }
  
