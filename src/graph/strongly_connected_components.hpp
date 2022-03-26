@@ -1,61 +1,61 @@
 #include <vector>
-
-struct strongly_connected_componects {
-  int n;
-  std::vector<std::vector<int>> G;
-  std::vector<std::vector<int>> scc;
-  std::vector<int> low;
-  std::vector<int> num;
-  std::vector<int> st;
-  std::vector<bool> in_st;
-  int cnt;
-
-  strongly_connected_componects(int n):
-    n(n), G(n) {}
-
+#include <iostream>
+ 
+struct strongly_connected_components {
+  std::vector<std::vector<int>> g;
+  std::vector<std::vector<int>> rg;
+  std::vector<int> vis;
+  std::vector<int> vs;
+ 
+  std::vector<int> group;
+  std::vector<std::vector<int>> comps;
+  int groups;
+ 
+  strongly_connected_components(int N): g(N), rg(N), vis(N, 0), group(N, -1) {}
+ 
   void add_edge(int a, int b) {
-    G[a].emplace_back(b);
+    g[a].push_back(b);
+    rg[b].push_back(a);
   }
-
-  void visit(int v) {
-    low[v] = num[v] = ++cnt;
-    st.emplace_back(v);
-    in_st[v] = true;
-
-    for(auto t: G[v]) {
-      if(num[t] == 0) {
-        visit(t);
-        low[v] = std::min(low[v], low[t]);
-      }
-      else if(in_st[t]) {
-        low[v] = std::min(low[v], num[t]);
-      }
+ 
+  void dfs(int v) {
+    vis[v] = 1;
+    for(auto& t: g[v]) {
+      if(!vis[t]) dfs(t);
     }
-
-    if(low[v] == num[v]) {
-      std::vector<int> vs;
-      while(true) {
-        int t = st.back();
-        st.pop_back();
-        in_st[t] = false;
-        vs.emplace_back(t);
-        if(v == t) break;
-      }
-      scc.emplace_back(std::move(vs));
+    vs.push_back(v);
+  }
+ 
+  void rdfs(int v, int k) {
+    vis[v] = 1;
+    group[v] = k;
+    comps.back().push_back(k);
+    for(auto to: rg[v]) {
+      if(!vis[to]) rdfs(to, k);
     }
   }
-
-  void build_scc() {
-    low.assign(n, 0);
-    num.assign(n, 0);
-    st.reserve(n);
-    in_st.assign(n, false);
-    cnt = 0;
-    for(int i = 0;i < n;i++) {
-      if(num[i] == 0) {
-        visit(i);
+ 
+  void build() {
+    for(int i = 0; i < g.size(); i++) {
+      if(!vis[i]) dfs(i);
+    }
+    vis.assign(g.size(), false);
+    groups = 0;
+    for(int i = g.size(); i --> 0; ) {
+      if(!vis[vs[i]]) {
+        comps.push_back(std::vector<int>());
+        rdfs(vs[i], groups++);
       }
     }
+  }
+ 
+  std::vector<std::vector<int>> build_compressed_graph() {
+    std::vector<std::vector<int>> cg(groups);
+    for(int i = 0; i < g.size(); i++) {
+      for(auto& j: g[i]) {
+        cg[group[i]].push_back(group[j]);
+      }
+    }
+    return cg;
   }
 };
-
