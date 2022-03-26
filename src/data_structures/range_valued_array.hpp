@@ -1,3 +1,6 @@
+#include <map>
+#include <iostream>
+
 struct range_valued_array {
   using key_type = int;
   using value_type = long long;
