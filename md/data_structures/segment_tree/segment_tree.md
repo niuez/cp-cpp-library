@@ -4,12 +4,6 @@
 - `using T = ...`
   - Segment Treeに載せる型
 
-- `T ope(const T& a, const T& b)`
-  - Tの演算を指定する
-
-- `T ide()`
-  - Tの単位元を返す
-
 - `segment_tree(vector<T> init)`
   - `init`からSegment Treeを構築する
   -  \\( O(n) \\)
@@ -21,6 +15,11 @@
 - `sum(i64 l, i64 r)`
   - `[l, r)`の総和を求める
   -  \\( O(\log n) \\)
+
+- `find_first(i64 l, F isok)`
+  - isokを満たす`[l, x)`のsumの中でxが最小のもの
+  - sumが区間の大きさについて単調である必要がある
+  - ないなら-1を返す
 
 ### Code
 
