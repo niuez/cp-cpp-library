@@ -172,18 +172,6 @@
 </ul>
 </li>
 <li>
-<p><code>T ope(const T&amp; a, const T&amp; b)</code></p>
-<ul>
-<li>Tの演算を指定する</li>
-</ul>
-</li>
-<li>
-<p><code>T ide()</code></p>
-<ul>
-<li>Tの単位元を返す</li>
-</ul>
-</li>
-<li>
 <p><code>segment_tree(vector&lt;T&gt; init)</code></p>
 <ul>
 <li><code>init</code>からSegment Treeを構築する</li>
@@ -204,76 +192,45 @@
 <li>\( O(\log n) \)</li>
 </ul>
 </li>
+<li>
+<p><code>find_first(i64 l, F isok)</code></p>
+<ul>
+<li>isokを満たす<code>[l, x)</code>のsumの中でxが最小のもの</li>
+<li>sumが区間の大きさについて単調である必要がある</li>
+<li>ないなら-1を返す</li>
+</ul>
+</li>
 </ul>
 <h3 id="code"><a class="header" href="#code">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 using i64 = long long;
 
-/**
- * # Segment Tree
- *
- * - モノイド列の点更新, 区間畳み込みが \\(\Theta(\log N)\\) でできるデータ構造
- * - 空間計算量 \\(\Theta(N)\\)
- * - ここでは, モノイドの演算が\\(\Theta(1)\\)であるとします.
- *
- * ## Template Arguments
- * ```cpp
- * @0@
- * ```
- *
- * - `T`: モノイドの型
- * - `Ope`: `operator()`でモノイドの演算を定義した構造体
- * - `Ide`: 零元
- *
- **/
-template&lt;class T, class Ope, const T&amp; Ide&gt;
+template&lt;class T, T (*ide)(), T (*ope)(T, T)&gt;
 struct segment_tree {
-  Ope ope;
- 
   i64 n;
   std::vector&lt;T&gt; node;
-  
-  /**
-   * ## (constructor)
-   * ```cpp
-   * @0@
-   * ```
-   * 列`init`で初期化, 時間計算量 \\(\Theta(N)\\)
-   **/
+
+  segment_tree() {}
   segment_tree(const std::vector&lt;T&gt;&amp; init) {
     n = 1;
     while(n &lt; init.size()) n *= 2;
-    node.resize(2 * n, Ide);
+    node.resize(2 * n, ide());
     for(int i = 0;i &lt; init.size();i++) node[i + n] = init[i];
-    for(int i = n - 1; i &gt;= 1;i--) node[i] = ope(node[i * 2], node[i * 2 + 1]);
+    for(int i = n; i --&gt; 1;) node[i] = ope(node[i * 2], node[i * 2 + 1]);
   }
  
-  /**
-   * ## update
-   * ```cpp
-   * @0@
-   * ```
-   * `A[i] &lt;- x`とする. 時間計算量 \\(\Theta(\log N)\\)
-   **/
   void update(i64 i, T x) {
     i += n;
     node[i] = x;
     while(i &gt; 1) {
-      i = i / 2;
+      i &gt;&gt;= 1;
       node[i] = ope(node[i * 2], node[i * 2 + 1]);
     }
   }
 
-  /**
-   * ## update
-   * ```cpp
-   * @0@
-   * ```
-   * \\([l, r)\\)の畳み込んだ値を返す. 時間計算量 \\(\Theta(\log N)\\)
-   **/
   T sum(i64 l, i64 r) const {
-    T lx = Ide;
-    T rx = Ide;
+    T lx = ide();
+    T rx = ide();
     l += n;
     r += n;
     while(l &lt; r) {
@@ -283,6 +240,48 @@ struct segment_tree {
       r &gt;&gt;= 1;
     }
     return ope(lx, rx);
+  }
+
+  const T&amp; at(i64 i) const {
+    return node[i];
+  }
+
+  template&lt;class F&gt;
+  i64 subtree_down_first(i64 i, T lx, F isok) const {
+    while(i &lt; n) {
+      T next = ope(lx, node[i * 2]);
+      if(isok(next)) i = i * 2;
+      else {
+        lx = next;
+        i = i * 2 + 1;
+      }
+    }
+    return i - n + 1;
+  }
+
+  template&lt;class F&gt;
+  i64 find_first(i64 l, F isok) const {
+    if(isok(ide())) {
+      return l;
+    }
+    if(l == 0) {
+      if(isok(node[1])) return subtree_down_first(1, ide(), isok);
+      return -1;
+    }
+    T lx = ide();
+    i64 r = n &lt;&lt; 1;
+    l += n;
+    while(l &lt; r) {
+      if(l &amp; 1) {
+        T next = ope(lx, node[l]);
+        if(isok(next)) return subtree_down_first(l, lx, isok);
+        lx = next;
+        l++;
+      }
+      l &gt;&gt;= 1;
+      r &gt;&gt;= 1;
+    }
+    return -1;
   }
 };
 </code></pre>
