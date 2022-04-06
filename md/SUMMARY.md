@@ -43,7 +43,7 @@
       - [SWAG](./data_structures/other/swag.md)
       - [Fenwick Tree](./data_structures/other/fenwick_tree.md)
       - [Online Dynamic Connectivity](./data_structures/other/online_dicon.md)
-
+      - [Range Valued Array](./data_structures/other/range_valued_array.md)
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
     - [Matrix](./math/matrix.md)
