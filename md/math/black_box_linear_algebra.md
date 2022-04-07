@@ -8,7 +8,7 @@
 \\(O(n^2 + n T(n))\\)
 
 ```cpp
-{{#include ../../src/math/black_box_liner_algebra/minimal_polynomial.hpp}}
+{{#include ../../src/math/black_box_linear_algebra/minimal_polynomial.hpp}}
 ```
 
 ### 行列式
@@ -16,5 +16,5 @@
 \\(O(n^2 + n T(n))\\)
 
 ```cpp
-{{#include ../../src/math/black_box_liner_algebra/fast_determinant.hpp}}
+{{#include ../../src/math/black_box_linear_algebra/fast_determinant.hpp}}
 ```
