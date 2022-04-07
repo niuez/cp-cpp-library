@@ -9,19 +9,17 @@ template<class T, class fps_multiply>
 struct FPS {
   std::vector<T> coef;
 
-  
-  FPS(const std::vector<T>& arr): coef(arr) {}
+  FPS(std::vector<T> arr): coef(std::move(arr)) {}
   size_t size() const { return coef.size(); }
   void bound_resize() {
     this->coef.resize(bound_pow2(this->size()));
   }
-  T operator[](int i) const {
-    if(i < coef.size()) return coef[i];
-    else return T();
+  const T& operator[](int i) const {
+    return coef[i];
   }
   T & operator[](int i) { return coef[i]; }
   FPS pre(int n) const {
-    std::vector<T> nex(n);
+    std::vector<T> nex(n, T(0));
     for(int i = 0;i < coef.size() && i < n; i++) nex[i] = coef[i];
     return FPS(nex);
   }
@@ -29,8 +27,7 @@ struct FPS {
   // F(0) must not be 0
   FPS inv() const {
     FPS g = FPS(std::vector<T>{ T(1) / (*this)[0] });
-    this->bound_resize();
-    i64 n = this->size();
+    i64 n = bound_pow2(this->size());
     for(int i = 1;i < n;i <<= 1) {
       g = g.pre(i << 1);
       auto gdft = fps_multiply::dft(g.coef);
@@ -83,18 +80,25 @@ struct FPS {
     }
     return f;
   }
-  
-  FPS operator+(const FPS& rhs) {
+
+  FPS& operator+=(const FPS& rhs) {
     i64 n = std::max(this->size(), rhs.size());
-    std::vector<T> ans(n);
-    for(int i = 0;i < n;i++) ans[i] = (*this)[i] + rhs[i];
-    return FPS(ans);
+    this->coef.resize(n, T(0));
+    for(int i = 0;i < rhs.size();i++) this->coef[i] += rhs[i];
+    return *this;
   }
-  FPS operator-(const FPS& rhs) {
+  FPS& operator-=(const FPS& rhs) {
     i64 n = std::max(this->size(), rhs.size());
-    std::vector<T> ans(n);
-    for(int i = 0;i < n;i++) ans[i] = (*this)[i] - rhs[i];
-    return FPS(ans);
+    this->coef.resize(n, T(0));
+    for(int i = 0;i < rhs.size();i++) this->coef[i] -= rhs[i];
+    return *this;
+  }
+  
+  FPS operator+(const FPS& rhs) const {
+    return (*this) += rhs;
+  }
+  FPS operator-(const FPS& rhs) const {
+    return (*this) -= rhs;
   }
   FPS operator*(const FPS& rhs) {
     i64 m = this->size() + rhs.size() - 1;
@@ -109,4 +113,3 @@ struct FPS {
   }
 
 };
-

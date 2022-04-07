@@ -11,8 +11,12 @@ struct fps_ntt_multiply {
   static std::vector<fps_type> idft(std::vector<conv_type> arr) {
     return inverse_number_theoretic_transform<mod, primitive>(std::move(arr));
   }
-  static std::vector<conv_type> multiply(std::vector<conv_type> a, std::vector<conv_type> b) {
+  static std::vector<conv_type> multiply(std::vector<conv_type> a, const std::vector<conv_type>& b) {
     for(int i = 0;i < a.size();i++) a[i] *= b[i];
+    return a;
+  }
+  static std::vector<conv_type> self_multiply(std::vector<conv_type> a) {
+    for(int i = 0;i < a.size();i++) a[i] *= a[i];
     return a;
   }
 };

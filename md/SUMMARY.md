@@ -58,6 +58,7 @@
     - [Factorial](./math/factorial.md)
     - [Adjucency Matrix Equation](./math/adjucency_matrix_equation.md)
     - [Berlekamp-Massey](./math/berlekamp_massey.md)
+    - [Fast-Kitamasa](./math/fast_kitamasa.md)
     - [Black Box Linear Algebra](./math/black_box_linear_algebra.md)
     - [Convolution](./math/convolution/index.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)

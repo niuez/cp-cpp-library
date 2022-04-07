@@ -52,5 +52,9 @@ struct fps_multiply_arb {
     mult_func(std::make_index_sequence<tsize>(), a, b);
     return a;
   }
+  static conv_type self_multiply(conv_type a) {
+    mult_func(std::make_index_sequence<tsize>(), a, a);
+    return a;
+  }
 };
 
