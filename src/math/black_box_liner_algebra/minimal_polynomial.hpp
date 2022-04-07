@@ -67,3 +67,33 @@ std::vector<F> find_minimal_polynomial_from_dense_matrix_pow2(const std::vector<
   }
   return find_minimal_polynomial(c);
 }
+
+#include <tuple>
+
+template<class F, class NonZeroRandGen>
+std::vector<F> find_minimal_polynomial_from_sparse_matrix_pow2(const std::vector<std::tuple<int, int, F>>& a, int n, NonZeroRandGen rnd) {
+  std::vector<F> b(n);
+  std::vector<F> bf;
+  for(int i = 0; i < n; i++) b[i] = rnd();
+
+  std::vector<F> u(n);
+  for(int i = 0; i < n; i++) u[i] = rnd();
+
+  std::vector<F> c(n * 2);
+  for(int i = 0; i < 2 * n; i++) {
+    for(int j = 0; j < n; j++) {
+      c[i] += b[j] * u[j];
+    }
+    if(i + 1 < 2 * n) {
+      bf = b;
+      for(int j = 0; j < n; j++) {
+        b[j] = F(0);
+      }
+      for(auto& [j, k, v]: a) {
+        b[j] += v * bf[k];
+      }
+    }
+  }
+  return find_minimal_polynomial(c);
+}
+
