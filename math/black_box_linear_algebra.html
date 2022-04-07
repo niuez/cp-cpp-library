@@ -140,11 +140,149 @@
 <p>ベクトルと行列の掛け算に\(T(n)\)時間かかるとします.</p>
 <h3 id="最小多項式"><a class="header" href="#最小多項式">最小多項式</a></h3>
 <p>\(O(n^2 + n T(n))\)</p>
-<pre><code class="language-cpp">{{#include ../../src/math/black_box_liner_algebra/minimal_polynomial.hpp}}
+<pre><code class="language-cpp">#include &quot;../berlekamp_massey.hpp&quot;
+
+#include &lt;vector&gt;
+
+template&lt;class F&gt;
+std::vector&lt;F&gt; find_minimal_polynomial(const std::vector&lt;F&gt;&amp; a) {
+  std::vector&lt;F&gt; c = berlekamp_massey(a);
+  c.insert(c.begin(), -F(1));
+  return c;
+}
+
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_vector(int n, const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+  std::vector&lt;F&gt; u(n);
+  for(int i = 0; i &lt; n; i++) u[i] = rnd();
+  std::vector&lt;F&gt; b(a.size(), F(0));
+  for(int i = 0; i &lt; a.size(); i++) {
+    for(int j = 0; j &lt; n; j++) {
+      b[i] += a[i][j] * u[j];
+    }
+  }
+  return find_minimal_polynomial(b);
+}
+
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+  int n = a.size();
+  std::vector&lt;std::vector&lt;F&gt;&gt; b(n * 2, std::vector&lt;F&gt;(n, F(0)));
+  for(int i = 0; i &lt; n; i++) b[0][i] = rnd();
+  for(int i = 1; i &lt; 2 * n; i++) {
+    auto&amp; bf = b[i - 1];
+    auto&amp; nx = b[i];
+    for(int j = 0; j &lt; n; j++) {
+      for(int k = 0; k &lt; n; k++) {
+        nx[j] += a[j][k] * bf[k];
+      }
+    }
+  }
+  return find_minimal_polynomial_from_vector(n, b, rnd);
+}
+
+// fast for dense matrix
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow2(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+  int n = a.size();
+  std::vector&lt;F&gt; b(n);
+  std::vector&lt;F&gt; bf;
+  for(int i = 0; i &lt; n; i++) b[i] = rnd();
+
+  std::vector&lt;F&gt; u(n);
+  for(int i = 0; i &lt; n; i++) u[i] = rnd();
+
+  std::vector&lt;F&gt; c(n * 2);
+  for(int i = 0; i &lt; 2 * n; i++) {
+    for(int j = 0; j &lt; n; j++) {
+      c[i] += b[j] * u[j];
+    }
+    if(i + 1 &lt; 2 * n) {
+      bf = b;
+      for(int j = 0; j &lt; n; j++) {
+        b[j] = F(0);
+        for(int k = 0; k &lt; n; k++) {
+          b[j] += a[j][k] * bf[k];
+        }
+      }
+    }
+  }
+  return find_minimal_polynomial(c);
+}
+
+#include &lt;tuple&gt;
+
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow2(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, int n, NonZeroRandGen rnd) {
+  std::vector&lt;F&gt; b(n);
+  std::vector&lt;F&gt; bf;
+  for(int i = 0; i &lt; n; i++) b[i] = rnd();
+
+  std::vector&lt;F&gt; u(n);
+  for(int i = 0; i &lt; n; i++) u[i] = rnd();
+
+  std::vector&lt;F&gt; c(n * 2);
+  for(int i = 0; i &lt; 2 * n; i++) {
+    for(int j = 0; j &lt; n; j++) {
+      c[i] += b[j] * u[j];
+    }
+    if(i + 1 &lt; 2 * n) {
+      bf = b;
+      for(int j = 0; j &lt; n; j++) {
+        b[j] = F(0);
+      }
+      for(auto&amp; [j, k, v]: a) {
+        b[j] += v * bf[k];
+      }
+    }
+  }
+  return find_minimal_polynomial(c);
+}
+
 </code></pre>
 <h3 id="行列式"><a class="header" href="#行列式">行列式</a></h3>
 <p>\(O(n^2 + n T(n))\)</p>
-<pre><code class="language-cpp">{{#include ../../src/math/black_box_liner_algebra/fast_determinant.hpp}}
+<pre><code class="language-cpp">#include &quot;minimal_polynomial.hpp&quot;
+#include &lt;vector&gt;
+#include &lt;tuple&gt;
+
+template&lt;class F, class NonZeroRandGen&gt;
+F fast_determinant_dense(std::vector&lt;std::vector&lt;F&gt;&gt; a, NonZeroRandGen rng) {
+  int n = a.size();
+  std::vector&lt;F&gt; d(n);
+  F d_det(1);
+  for(int i = 0; i &lt; n; i++) {
+    d[i] = rng();
+    d_det *= d[i];
+  }
+  for(int i = 0; i &lt; n; i++) {
+    for(int j = 0; j &lt; n; j++) {
+      a[i][j] = a[i][j] * d[j];
+    }
+  }
+  auto c = find_minimal_polynomial_from_dense_matrix_pow2(a, rng);
+  F det = c.back() / c.front();
+  det = n &amp; 1 ? -det : det;
+  return det / d_det;
+}
+
+template&lt;class F, class NonZeroRandGen&gt;
+F fast_determinant_sparse(std::vector&lt;std::tuple&lt;int, int, F&gt;&gt; a, int n, NonZeroRandGen rng) {
+  std::vector&lt;F&gt; d(n);
+  F d_det(1);
+  for(int i = 0; i &lt; n; i++) {
+    d[i] = rng();
+    d_det *= d[i];
+  }
+  for(auto&amp; [i, j, v]: a) {
+    v *= d[j];
+  }
+  auto c = find_minimal_polynomial_from_sparse_matrix_pow2(a, n, rng);
+  F det = c.back() / c.front();
+  det = n &amp; 1 ? -det : det;
+  return det / d_det;
+}
+
 </code></pre>
 
                     </main>

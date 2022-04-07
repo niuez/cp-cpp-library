@@ -7315,8 +7315,122 @@ i64 garner(const vector&lt;i64&gt; &amp;x, vector&lt;i64&gt; mods, i64 mod) {
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="formal-power-series"><a class="header" href="#formal-power-series">Formal Power Series</a></h1>
-<h2 id="code-39"><a class="header" href="#code-39">Code</a></h2>
-<pre><code>#include &quot;modint.hpp&quot;
+<h3 id="fps"><a class="header" href="#fps">FPS</a></h3>
+<pre><code class="language-cpp">#include &lt;vector&gt;
+using i64 = long long;
+
+std::size_t bound_pow2(std::size_t sz) {
+  return 1ll &lt;&lt; (__lg(sz - 1) + 1);
+}
+
+template&lt;class T, class fps_multiply&gt;
+struct FPS {
+  std::vector&lt;T&gt; coef;
+
+  
+  FPS(const std::vector&lt;T&gt;&amp; arr): coef(arr) {}
+  size_t size() const { return coef.size(); }
+  void bound_resize() {
+    this-&gt;coef.resize(bound_pow2(this-&gt;size()));
+  }
+  T operator[](int i) const {
+    if(i &lt; coef.size()) return coef[i];
+    else return T();
+  }
+  T &amp; operator[](int i) { return coef[i]; }
+  FPS pre(int n) const {
+    std::vector&lt;T&gt; nex(n);
+    for(int i = 0;i &lt; coef.size() &amp;&amp; i &lt; n; i++) nex[i] = coef[i];
+    return FPS(nex);
+  }
+  
+  // F(0) must not be 0
+  FPS inv() const {
+    FPS g = FPS(std::vector&lt;T&gt;{ T(1) / (*this)[0] });
+    this-&gt;bound_resize();
+    i64 n = this-&gt;size();
+    for(int i = 1;i &lt; n;i &lt;&lt;= 1) {
+      g = g.pre(i &lt;&lt; 1);
+      auto gdft = fps_multiply::dft(g.coef);
+      auto e = fps_multiply::idft(
+          fps_multiply::multiply(
+            fps_multiply::dft(this-&gt;pre(i &lt;&lt; 1).coef), gdft
+            )
+          );
+      for(int j = 0;j &lt; i;j++) {
+        e[j] = T(0);
+        e[j + i] = e[j + i] * T(-1);
+      }
+      auto f = fps_multiply::idft(
+          fps_multiply::multiply(
+            fps_multiply::dft(e), std::move(gdft)
+            )
+          );
+      for(int j = 0;j &lt; i;j++) {
+        f[j] = g[j];
+      }
+      g.coef = std::move(f);
+    }
+    return g.pre(n);
+  }
+
+  FPS diff() const {
+    FPS res(std::vector&lt;T&gt;(this-&gt;size() - 1, T(0)));
+    for(i64 i = 1;i &lt; this-&gt;size();i++) res[i - 1] = coef[i] * T(i);
+    return res;
+  }
+
+  FPS integral() const {
+    FPS res(std::vector&lt;T&gt;(this-&gt;size() + 1, T(0)));
+    for(i64 i = 0;i &lt; this-&gt;size();i++) res[i + 1] = coef[i] / T(i + 1);
+    return res;
+  }
+
+  // F(0) must be 0
+  FPS log() const {
+    return (this-&gt;diff() * this-&gt;inv()).integral().pre(this-&gt;size());
+  }
+
+  FPS exp() const {
+    FPS f(std::vector&lt;T&gt;{ T(1) });
+    FPS g = *this;
+    g.bound_resize();
+    g[0] += T(1);
+    for(i64 i = 1;i &lt; size();i &lt;&lt;= 1 ) {
+      f = (f * (g.pre(i &lt;&lt; 1) - f.pre(i &lt;&lt; 1).log())).pre(i &lt;&lt; 1);
+    }
+    return f;
+  }
+  
+  FPS operator+(const FPS&amp; rhs) {
+    i64 n = std::max(this-&gt;size(), rhs.size());
+    std::vector&lt;T&gt; ans(n);
+    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] + rhs[i];
+    return FPS(ans);
+  }
+  FPS operator-(const FPS&amp; rhs) {
+    i64 n = std::max(this-&gt;size(), rhs.size());
+    std::vector&lt;T&gt; ans(n);
+    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] - rhs[i];
+    return FPS(ans);
+  }
+  FPS operator*(const FPS&amp; rhs) {
+    i64 m = this-&gt;size() + rhs.size() - 1;
+    i64 n = bound_pow2(m);
+    auto res = fps_multiply::idft(
+        fps_multiply::multiply(
+          fps_multiply::dft(this-&gt;pre(n).coef), fps_multiply::dft(rhs.pre(n).coef)
+          )
+        );
+    res.resize(m);
+    return res;
+  }
+
+};
+
+</code></pre>
+<h3 id="nttをそのまま使うとき"><a class="header" href="#nttをそのまま使うとき">NTTをそのまま使うとき</a></h3>
+<pre><code class="language-cpp">#include &quot;modint.hpp&quot;
 #include &quot;convolution/number_theoretic_transform.hpp&quot;
 
 template&lt;const i64 mod, const i64 primitive&gt;
@@ -7335,8 +7449,13 @@ struct fps_ntt_multiply {
   }
 };
 
-#include &lt;tuple&gt;
+</code></pre>
+<h3 id="任意modで"><a class="header" href="#任意modで">任意modで</a></h3>
+<pre><code class="language-cpp">#include &quot;modint.hpp&quot;
+#include &quot;convolution/number_theoretic_transform.hpp&quot;
 #include &quot;garner.hpp&quot;
+#include &lt;vector&gt;
+#include &lt;tuple&gt;
 
 template&lt;i64 M, i64... NTTis&gt;
 struct fps_multiply_arb {
@@ -7388,114 +7507,6 @@ struct fps_multiply_arb {
   }
 };
 
-template&lt;class T, class fps_multiply&gt;
-struct FPS {
-  std::vector&lt;T&gt; coef;
-
-  static std::size_t bound_pow2(std::size_t sz) {
-    return 1ll &lt;&lt; (__lg(sz - 1) + 1);
-  }
-  
-  FPS(const std::vector&lt;T&gt;&amp; arr): coef(arr) {}
-  size_t size() const { return coef.size(); }
-  void bound_resize() {
-    this-&gt;coef.resize(bound_pow2(this-&gt;size()));
-  }
-  T operator[](int i) const {
-    if(i &lt; coef.size()) return coef[i];
-    else return T();
-  }
-  T &amp; operator[](int i) { return coef[i]; }
-  FPS pre(int n) const {
-    std::vector&lt;T&gt; nex(n);
-    for(int i = 0;i &lt; coef.size() &amp;&amp; i &lt; n; i++) nex[i] = coef[i];
-    return FPS(nex);
-  }
-  
-  // F(0) must not be 0
-  FPS inv() const {
-    FPS g = FPS(std::vector&lt;T&gt;{ T(1) / (*this)[0] });
-    this-&gt;bound_resize();
-    i64 n = this-&gt;size();
-    for(int i = 1;i &lt; n;i &lt;&lt;= 1) {
-      g = g.pre(i &lt;&lt; 1);
-      auto gdft = fps_multiply::dft(g.coef);
-      auto e = fps_multiply::idft(
-          fps_multiply::multiply(
-            fps_multiply::dft(this-&gt;pre(i &lt;&lt; 1).coef), gdft
-            )
-          );
-      for(int j = 0;j &lt; i;j++) {
-        e[j] = T(0);
-        e[j + i] = e[j + i] * T(-1);
-      }
-      auto f = fps_multiply::idft(
-          fps_multiply::multiply(
-            fps_multiply::dft(e), std::move(gdft)
-            )
-          );
-      for(int j = 0;j &lt; i;j++) {
-        f[j] = g[j];
-      }
-      g.coef = std::move(f);
-    }
-    return g.pre(n);
-  }
-
-  FPS diff() const {
-    FPS res(vector&lt;T&gt;(this-&gt;size() - 1, T(0)));
-    for(i64 i = 1;i &lt; this-&gt;size();i++) res[i - 1] = coef[i] * T(i);
-    return res;
-  }
-
-  FPS integral() const {
-    FPS res(vector&lt;T&gt;(this-&gt;size() + 1, T(0)));
-    for(i64 i = 0;i &lt; this-&gt;size();i++) res[i + 1] = coef[i] / T(i + 1);
-    return res;
-  }
-
-  // F(0) must be 0
-  FPS log() const {
-    return (this-&gt;diff() * this-&gt;inv()).integral().pre(this-&gt;size());
-  }
-
-  FPS exp() const {
-    FPS f(vector&lt;T&gt;{ T(1) });
-    FPS g = *this;
-    g.bound_resize();
-    g[0] += T(1);
-    for(i64 i = 1;i &lt; size();i &lt;&lt;= 1 ) {
-      f = (f * (g.pre(i &lt;&lt; 1) - f.pre(i &lt;&lt; 1).log())).pre(i &lt;&lt; 1);
-    }
-    return f;
-  }
-  
-  FPS operator+(const FPS&amp; rhs) {
-    i64 n = std::max(this-&gt;size(), rhs.size());
-    std::vector&lt;T&gt; ans(n);
-    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] + rhs[i];
-    return FPS(ans);
-  }
-  FPS operator-(const FPS&amp; rhs) {
-    i64 n = std::max(this-&gt;size(), rhs.size());
-    std::vector&lt;T&gt; ans(n);
-    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] - rhs[i];
-    return FPS(ans);
-  }
-  FPS operator*(const FPS&amp; rhs) {
-    i64 m = this-&gt;size() + rhs.size() - 1;
-    i64 n = bound_pow2(m);
-    auto res = fps_multiply::idft(
-        fps_multiply::multiply(
-          fps_multiply::dft(this-&gt;pre(n).coef), fps_multiply::dft(rhs.pre(n).coef)
-          )
-        );
-    res.resize(m);
-    return res;
-  }
-
-};
-
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mori-fps-division"><a class="header" href="#mori-fps-division">Mori FPS Division</a></h1>
 <h1 id="fps-division"><a class="header" href="#fps-division">FPS Division</a></h1>
@@ -7505,7 +7516,7 @@ struct FPS {
 <li>\( P(x) \)は高々\( k - 1 \)次の多項式</li>
 <li>\( Q(x) \)は\( k \)次の多項式</li>
 </ul>
-<h3 id="code-40"><a class="header" href="#code-40">Code</a></h3>
+<h3 id="code-39"><a class="header" href="#code-39">Code</a></h3>
 <pre><code class="language-cpp">#include &quot;formal_power_series.hpp&quot;
 
 template&lt;class T, class fps_multiply&gt;
@@ -7551,7 +7562,7 @@ T mori_fps_division(FPS&lt;T, fps_multiply&gt; P, FPS&lt;T, fps_multiply&gt; Q, 
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="modint-1"><a class="header" href="#modint-1">modint</a></h1>
-<h3 id="code-41"><a class="header" href="#code-41">Code</a></h3>
+<h3 id="code-40"><a class="header" href="#code-40">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 
 template&lt;class T&gt;
@@ -7617,7 +7628,7 @@ std::vector&lt;T&gt; newton_interpolation(std::vector&lt;std::pair&lt;T, T&gt;&g
 <p><code>bounds</code>には, \( x \)のとる下界と上界を与える.</p>
 <h2 id="memo"><a class="header" href="#memo">Memo</a></h2>
 <p><code>eps</code>を変える必要があるかもしれない.</p>
-<h3 id="code-42"><a class="header" href="#code-42">Code</a></h3>
+<h3 id="code-41"><a class="header" href="#code-41">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;set&gt;
 #include &lt;cassert&gt;
@@ -7804,7 +7815,7 @@ int main() {
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="runtime-fp"><a class="header" href="#runtime-fp">Runtime fp</a></h1>
-<h3 id="code-43"><a class="header" href="#code-43">Code</a></h3>
+<h3 id="code-42"><a class="header" href="#code-42">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -7864,7 +7875,7 @@ struct modint {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="f2x"><a class="header" href="#f2x">F2[[x]]</a></h1>
 <h3 id="spec-28"><a class="header" href="#spec-28">Spec</a></h3>
 <p>gcdとか, modとかができます.</p>
-<h3 id="code-44"><a class="header" href="#code-44">Code</a></h3>
+<h3 id="code-43"><a class="header" href="#code-43">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;array&gt;
 #include &lt;cstdint&gt;
 #include &lt;cassert&gt;
@@ -8149,7 +8160,7 @@ int main() {
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="factorial"><a class="header" href="#factorial">factorial</a></h1>
-<h2 id="code-45"><a class="header" href="#code-45">Code</a></h2>
+<h2 id="code-44"><a class="header" href="#code-44">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;tuple&gt;
 using i64 = long long;
@@ -8188,7 +8199,7 @@ struct factorial {
 };
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="adjucency-matrix-equation"><a class="header" href="#adjucency-matrix-equation">Adjucency Matrix Equation</a></h1>
-<h3 id="code-46"><a class="header" href="#code-46">Code</a></h3>
+<h3 id="code-45"><a class="header" href="#code-45">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;set&gt;
 
@@ -8235,7 +8246,7 @@ struct adjucency_matrix_equation {
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="berlekamp-massey"><a class="header" href="#berlekamp-massey">Berlekamp-Massey</a></h1>
 <p>線形漸化式\( a_i = c_0 * a_(i - 1) + c_1 * a_(i - 2) + ... \)があって、数列\(a\)がわかっているときに、漸化式の係数\(c\)を\(O(n^2)\)で求める.</p>
-<h3 id="code-47"><a class="header" href="#code-47">Code</a></h3>
+<h3 id="code-46"><a class="header" href="#code-46">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 
 template&lt;class F&gt;
@@ -8274,11 +8285,149 @@ std::vector&lt;F&gt; berlekamp_massey(const std::vector&lt;F&gt;&amp; s) {
 <p>ベクトルと行列の掛け算に\(T(n)\)時間かかるとします.</p>
 <h3 id="最小多項式"><a class="header" href="#最小多項式">最小多項式</a></h3>
 <p>\(O(n^2 + n T(n))\)</p>
-<pre><code class="language-cpp">{{#include ../../src/math/black_box_liner_algebra/minimal_polynomial.hpp}}
+<pre><code class="language-cpp">#include &quot;../berlekamp_massey.hpp&quot;
+
+#include &lt;vector&gt;
+
+template&lt;class F&gt;
+std::vector&lt;F&gt; find_minimal_polynomial(const std::vector&lt;F&gt;&amp; a) {
+  std::vector&lt;F&gt; c = berlekamp_massey(a);
+  c.insert(c.begin(), -F(1));
+  return c;
+}
+
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_vector(int n, const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+  std::vector&lt;F&gt; u(n);
+  for(int i = 0; i &lt; n; i++) u[i] = rnd();
+  std::vector&lt;F&gt; b(a.size(), F(0));
+  for(int i = 0; i &lt; a.size(); i++) {
+    for(int j = 0; j &lt; n; j++) {
+      b[i] += a[i][j] * u[j];
+    }
+  }
+  return find_minimal_polynomial(b);
+}
+
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+  int n = a.size();
+  std::vector&lt;std::vector&lt;F&gt;&gt; b(n * 2, std::vector&lt;F&gt;(n, F(0)));
+  for(int i = 0; i &lt; n; i++) b[0][i] = rnd();
+  for(int i = 1; i &lt; 2 * n; i++) {
+    auto&amp; bf = b[i - 1];
+    auto&amp; nx = b[i];
+    for(int j = 0; j &lt; n; j++) {
+      for(int k = 0; k &lt; n; k++) {
+        nx[j] += a[j][k] * bf[k];
+      }
+    }
+  }
+  return find_minimal_polynomial_from_vector(n, b, rnd);
+}
+
+// fast for dense matrix
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow2(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+  int n = a.size();
+  std::vector&lt;F&gt; b(n);
+  std::vector&lt;F&gt; bf;
+  for(int i = 0; i &lt; n; i++) b[i] = rnd();
+
+  std::vector&lt;F&gt; u(n);
+  for(int i = 0; i &lt; n; i++) u[i] = rnd();
+
+  std::vector&lt;F&gt; c(n * 2);
+  for(int i = 0; i &lt; 2 * n; i++) {
+    for(int j = 0; j &lt; n; j++) {
+      c[i] += b[j] * u[j];
+    }
+    if(i + 1 &lt; 2 * n) {
+      bf = b;
+      for(int j = 0; j &lt; n; j++) {
+        b[j] = F(0);
+        for(int k = 0; k &lt; n; k++) {
+          b[j] += a[j][k] * bf[k];
+        }
+      }
+    }
+  }
+  return find_minimal_polynomial(c);
+}
+
+#include &lt;tuple&gt;
+
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow2(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, int n, NonZeroRandGen rnd) {
+  std::vector&lt;F&gt; b(n);
+  std::vector&lt;F&gt; bf;
+  for(int i = 0; i &lt; n; i++) b[i] = rnd();
+
+  std::vector&lt;F&gt; u(n);
+  for(int i = 0; i &lt; n; i++) u[i] = rnd();
+
+  std::vector&lt;F&gt; c(n * 2);
+  for(int i = 0; i &lt; 2 * n; i++) {
+    for(int j = 0; j &lt; n; j++) {
+      c[i] += b[j] * u[j];
+    }
+    if(i + 1 &lt; 2 * n) {
+      bf = b;
+      for(int j = 0; j &lt; n; j++) {
+        b[j] = F(0);
+      }
+      for(auto&amp; [j, k, v]: a) {
+        b[j] += v * bf[k];
+      }
+    }
+  }
+  return find_minimal_polynomial(c);
+}
+
 </code></pre>
 <h3 id="行列式"><a class="header" href="#行列式">行列式</a></h3>
 <p>\(O(n^2 + n T(n))\)</p>
-<pre><code class="language-cpp">{{#include ../../src/math/black_box_liner_algebra/fast_determinant.hpp}}
+<pre><code class="language-cpp">#include &quot;minimal_polynomial.hpp&quot;
+#include &lt;vector&gt;
+#include &lt;tuple&gt;
+
+template&lt;class F, class NonZeroRandGen&gt;
+F fast_determinant_dense(std::vector&lt;std::vector&lt;F&gt;&gt; a, NonZeroRandGen rng) {
+  int n = a.size();
+  std::vector&lt;F&gt; d(n);
+  F d_det(1);
+  for(int i = 0; i &lt; n; i++) {
+    d[i] = rng();
+    d_det *= d[i];
+  }
+  for(int i = 0; i &lt; n; i++) {
+    for(int j = 0; j &lt; n; j++) {
+      a[i][j] = a[i][j] * d[j];
+    }
+  }
+  auto c = find_minimal_polynomial_from_dense_matrix_pow2(a, rng);
+  F det = c.back() / c.front();
+  det = n &amp; 1 ? -det : det;
+  return det / d_det;
+}
+
+template&lt;class F, class NonZeroRandGen&gt;
+F fast_determinant_sparse(std::vector&lt;std::tuple&lt;int, int, F&gt;&gt; a, int n, NonZeroRandGen rng) {
+  std::vector&lt;F&gt; d(n);
+  F d_det(1);
+  for(int i = 0; i &lt; n; i++) {
+    d[i] = rng();
+    d_det *= d[i];
+  }
+  for(auto&amp; [i, j, v]: a) {
+    v *= d[j];
+  }
+  auto c = find_minimal_polynomial_from_sparse_matrix_pow2(a, n, rng);
+  F det = c.back() / c.front();
+  det = n &amp; 1 ? -det : det;
+  return det / d_det;
+}
+
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="convolution"><a class="header" href="#convolution">Convolution</a></h1>
 <p>畳み込み <a href="http://kazuma8128.hatenablog.com/entry/2018/07/29/231819">参考 - 約数集合でのゼータ変換・メビウス変換的なやつと畳み込み</a></p>
@@ -8300,7 +8449,7 @@ std::vector&lt;F&gt; berlekamp_massey(const std::vector&lt;F&gt;&amp; s) {
 <p><code>i</code>について, <code>i</code>を約数に持つ<code>j</code>(上位集合)の<code>a[j]</code>の総和を求める. \( O(N \log{\log N}) \).<br />
 <code>inverse multiple transform</code>と共に使うと<code>gcd</code>に関する畳み込みができる. こんな感じ</p>
 <p>\[ h(z) = \sum_{\gcd(x, y) = z} {f(x) * g(y)} \]</p>
-<h3 id="code-48"><a class="header" href="#code-48">Code</a></h3>
+<h3 id="code-47"><a class="header" href="#code-47">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -8345,7 +8494,7 @@ void inverse_multiple_transform(vector&lt;T&gt; &amp;a) {
 <p><code>i</code>について, <code>i</code>の約数である<code>j</code>(下位集合)について<code>a[j]</code>の総和を求める. \( O(N \log{\log N}) \).<br />
 <code>inverse divisor transform</code>と共に使うと<code>lcm</code>に関する畳み込みができる. こんな感じ</p>
 <p>\[  h(z) = \sum_{ \operatorname{lcm} (x, y) = z } { f(x) * g(y) } \]</p>
-<h3 id="code-49"><a class="header" href="#code-49">Code</a></h3>
+<h3 id="code-48"><a class="header" href="#code-48">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -8389,7 +8538,7 @@ void inverse_divisor_transform(vector&lt;T&gt; &amp;a) {
 <h3 id="spec-31"><a class="header" href="#spec-31">Spec</a></h3>
 <p>離散フーリエ変換(discrete Fourier transformation)を\( O(n \log n) \)で行う.</p>
 <p>誤差厳しい, 整数ならNTT使おう(誤差をなくすようにFFTするのもあるらしい)</p>
-<h3 id="code-50"><a class="header" href="#code-50">Code</a></h3>
+<h3 id="code-49"><a class="header" href="#code-49">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;iostream&gt;
 #include &lt;complex&gt;
@@ -8439,7 +8588,7 @@ vector&lt;complex&lt;double&gt;&gt; inverse_fast_fourier_transform(vector&lt;com
 <p>素数\( m = 2^k + 1, 2^k &gt;= n\)として\(F_m \)剰余環上での離散フーリエ変換(discrete Fourier transformation)を\( O(n \log n) \)で行う<br />
 <code>NTT_PRIMES</code>は<a href="https://lumakernel.github.io/ecasdqina/math/FFT/NTT">るまライブラリ</a>からお借りしています</p>
 <p>ほとんど単体でNTTを使うことはなさそう(FPSで使うね)</p>
-<h3 id="code-51"><a class="header" href="#code-51">Code</a></h3>
+<h3 id="code-50"><a class="header" href="#code-50">Code</a></h3>
 <pre><code class="language-cpp">#include &quot;../modint.hpp&quot;
 #include &lt;vector&gt;
 using namespace std;
@@ -8513,7 +8662,7 @@ vector&lt;modint&lt;mod&gt;&gt; inverse_number_theoretic_transform(vector&lt;mod
 <li><a href="string/./Z-algorithm.html">Z-algorithm</a> \</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="231-rolling-hash"><a class="header" href="#231-rolling-hash">2^31 Rolling Hash</a></h1>
-<h2 id="code-52"><a class="header" href="#code-52">Code</a></h2>
+<h2 id="code-51"><a class="header" href="#code-51">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 using u64 = unsigned long long;
 
@@ -8608,7 +8757,7 @@ struct rhash {
 };
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="manacher"><a class="header" href="#manacher">Manacher</a></h1>
-<h2 id="code-53"><a class="header" href="#code-53">Code</a></h2>
+<h2 id="code-52"><a class="header" href="#code-52">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -8638,7 +8787,7 @@ vector&lt;i64&gt; manacher(string S) {
 <pre><code>aabaabaaa
 _010123452
 </code></pre>
-<h3 id="code-54"><a class="header" href="#code-54">Code</a></h3>
+<h3 id="code-53"><a class="header" href="#code-53">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -8661,7 +8810,7 @@ vector&lt;i64&gt; mp(string S) {
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="suffix-array"><a class="header" href="#suffix-array">Suffix Array</a></h1>
-<h2 id="code-55"><a class="header" href="#code-55">Code</a></h2>
+<h2 id="code-54"><a class="header" href="#code-54">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;iostream&gt;
 
@@ -8775,7 +8924,7 @@ const std::vector&lt;int&gt;&amp; sa_is(std::vector&lt;T&gt; s, int k) {
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="z-algorithm"><a class="header" href="#z-algorithm">Z-algorithm</a></h1>
-<h2 id="code-56"><a class="header" href="#code-56">Code</a></h2>
+<h2 id="code-55"><a class="header" href="#code-55">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -9117,7 +9266,7 @@ struct burrows_wheeler {
 };
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rolling-hash"><a class="header" href="#rolling-hash">Rolling Hash</a></h1>
-<h2 id="code-57"><a class="header" href="#code-57">Code</a></h2>
+<h2 id="code-56"><a class="header" href="#code-56">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -9158,7 +9307,7 @@ struct rolling_hash {
 <li><a href="graph/./strongly_connected_components.html">Strongly Connected Components</a> \</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="dijkstra"><a class="header" href="#dijkstra">Dijkstra</a></h1>
-<h3 id="code-58"><a class="header" href="#code-58">Code</a></h3>
+<h3 id="code-57"><a class="header" href="#code-57">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 
@@ -9187,7 +9336,7 @@ std::vector&lt;W&gt; dijkstra(std::size_t N, W inf, V s, Delta delta, Index inde
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="dijkstra-1"><a class="header" href="#dijkstra-1">Dijkstra</a></h1>
-<h3 id="code-59"><a class="header" href="#code-59">Code</a></h3>
+<h3 id="code-58"><a class="header" href="#code-58">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 
@@ -9216,7 +9365,7 @@ std::vector&lt;W&gt; dijkstra(std::size_t N, W inf, V s, Delta delta, Index inde
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="bfs"><a class="header" href="#bfs">BFS</a></h1>
-<h3 id="code-60"><a class="header" href="#code-60">Code</a></h3>
+<h3 id="code-59"><a class="header" href="#code-59">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 using i64 = long long;
@@ -9245,7 +9394,7 @@ std::vector&lt;i64&gt; bfs(std::size_t N, V s, Delta delta, Index index) {
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="dial-01"><a class="header" href="#dial-01">Dial 01</a></h1>
-<h3 id="code-61"><a class="header" href="#code-61">Code</a></h3>
+<h3 id="code-60"><a class="header" href="#code-60">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 using i64 = long long;
@@ -9278,7 +9427,7 @@ std::vector&lt;i64&gt; dial01(std::size_t N, W inf, V s, Delta delta, Index inde
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="dinic"><a class="header" href="#dinic">Dinic</a></h1>
-<h2 id="code-62"><a class="header" href="#code-62">Code</a></h2>
+<h2 id="code-61"><a class="header" href="#code-61">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 
@@ -9348,7 +9497,7 @@ struct dinic {
 };
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="dinic-1"><a class="header" href="#dinic-1">Dinic</a></h1>
-<h2 id="code-63"><a class="header" href="#code-63">Code</a></h2>
+<h2 id="code-62"><a class="header" href="#code-62">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 
@@ -9418,7 +9567,7 @@ struct dinic {
 };
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="goldberg-tarjans-preflow-relabel"><a class="header" href="#goldberg-tarjans-preflow-relabel">GoldBerg Tarjan's Preflow Relabel</a></h1>
-<h3 id="code-64"><a class="header" href="#code-64">Code</a></h3>
+<h3 id="code-63"><a class="header" href="#code-63">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;iostream&gt;
 #include &lt;tuple&gt;
@@ -9634,7 +9783,7 @@ struct goldberg_tarjan {
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="successive-shortest-path"><a class="header" href="#successive-shortest-path">Successive Shortest Path</a></h1>
-<h2 id="code-65"><a class="header" href="#code-65">Code</a></h2>
+<h2 id="code-64"><a class="header" href="#code-64">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 #include &lt;set&gt;
@@ -9733,7 +9882,7 @@ struct dinic {
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="successive-shortest-path-1"><a class="header" href="#successive-shortest-path-1">Successive Shortest Path</a></h1>
-<h2 id="code-66"><a class="header" href="#code-66">Code</a></h2>
+<h2 id="code-65"><a class="header" href="#code-65">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;queue&gt;
 #include &lt;set&gt;
@@ -9832,7 +9981,7 @@ struct dinic {
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="strongly-connected-components"><a class="header" href="#strongly-connected-components">Strongly Connected Components</a></h1>
-<h2 id="code-67"><a class="header" href="#code-67">Code</a></h2>
+<h2 id="code-66"><a class="header" href="#code-66">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;iostream&gt;
  
@@ -9896,7 +10045,7 @@ struct strongly_connected_components {
 };
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="incremental-bridge-connectivity"><a class="header" href="#incremental-bridge-connectivity">Incremental Bridge Connectivity</a></h1>
-<h2 id="code-68"><a class="header" href="#code-68">Code</a></h2>
+<h2 id="code-67"><a class="header" href="#code-67">Code</a></h2>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 #include &lt;tuple&gt;
 #include &lt;bitset&gt;
@@ -10003,7 +10152,7 @@ struct incremental_bridge_connectivity {
 
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="lattice-graph"><a class="header" href="#lattice-graph">Lattice Graph</a></h1>
-<h3 id="code-69"><a class="header" href="#code-69">Code</a></h3>
+<h3 id="code-68"><a class="header" href="#code-68">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;set&gt;
 #include &lt;vector&gt;
 using i64 = long long;
@@ -10051,7 +10200,7 @@ struct lattice_index {
 </ul>
 </li>
 </ul>
-<h3 id="code-70"><a class="header" href="#code-70">Code</a></h3>
+<h3 id="code-69"><a class="header" href="#code-69">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;algorithm&gt;
 #include &lt;cmath&gt;
 #include &lt;tuple&gt;
@@ -10220,7 +10369,7 @@ namespace Geometory {
 </ul>
 </li>
 </ul>
-<h3 id="code-71"><a class="header" href="#code-71">Code</a></h3>
+<h3 id="code-70"><a class="header" href="#code-70">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 
 template&lt;class T&gt;
@@ -10247,7 +10396,7 @@ struct Compression {
 <li><code>grn[(ゲームの状態)]</code>が<code>0</code> -&gt; その状態での手番の人が負ける</li>
 <li><code>grn[(ゲームの状態)]</code>が<code>0</code>以外 -&gt; その状態での手番の人が勝つ</li>
 </ul>
-<h3 id="code-72"><a class="header" href="#code-72">Code</a></h3>
+<h3 id="code-71"><a class="header" href="#code-71">Code</a></h3>
 <p>このコードでは, 取れる個数に制限がついているNimの勝敗を計算している.</p>
 <pre><code class="language-cpp">/*
  N個の正整数からなる集合 A={a1,a2,…,aN}があります。 太郎君と次郎君が次のゲームで勝負します。
@@ -10294,7 +10443,7 @@ int main() {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="monge-dp"><a class="header" href="#monge-dp">Monge DP</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mos-algorithm"><a class="header" href="#mos-algorithm">Mo's Algorithm</a></h1>
 <p>もーもー</p>
-<h3 id="code-73"><a class="header" href="#code-73">Code</a></h3>
+<h3 id="code-72"><a class="header" href="#code-72">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
 using namespace std;
 using i64 = long long;
@@ -10358,7 +10507,7 @@ struct Mo {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="slide-min"><a class="header" href="#slide-min">Slide Min</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fastio"><a class="header" href="#fastio">FastIO</a></h1>
 <h3 id="spec-37"><a class="header" href="#spec-37">Spec</a></h3>
-<h3 id="code-74"><a class="header" href="#code-74">Code</a></h3>
+<h3 id="code-73"><a class="header" href="#code-73">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;unistd.h&gt;
 
 namespace niu {
@@ -10429,7 +10578,7 @@ namespace niu {
 <li><code>Ope</code> ... <code>U x U -&gt; U</code> モノイドの値</li>
 <li><code>Merge</code> ... <code>U x V -&gt; T</code> モノイドと頂点から答えを導く</li>
 </ul>
-<h3 id="code-75"><a class="header" href="#code-75">Code</a></h3>
+<h3 id="code-74"><a class="header" href="#code-74">Code</a></h3>
 <pre><code class="language-cpp">#include &lt;vector&gt;
  
 template&lt;class T, class E, class U, class To, class Adj, class Ope, class Merge&gt;

@@ -137,8 +137,122 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="formal-power-series"><a class="header" href="#formal-power-series">Formal Power Series</a></h1>
-<h2 id="code"><a class="header" href="#code">Code</a></h2>
-<pre><code>#include &quot;modint.hpp&quot;
+<h3 id="fps"><a class="header" href="#fps">FPS</a></h3>
+<pre><code class="language-cpp">#include &lt;vector&gt;
+using i64 = long long;
+
+std::size_t bound_pow2(std::size_t sz) {
+  return 1ll &lt;&lt; (__lg(sz - 1) + 1);
+}
+
+template&lt;class T, class fps_multiply&gt;
+struct FPS {
+  std::vector&lt;T&gt; coef;
+
+  
+  FPS(const std::vector&lt;T&gt;&amp; arr): coef(arr) {}
+  size_t size() const { return coef.size(); }
+  void bound_resize() {
+    this-&gt;coef.resize(bound_pow2(this-&gt;size()));
+  }
+  T operator[](int i) const {
+    if(i &lt; coef.size()) return coef[i];
+    else return T();
+  }
+  T &amp; operator[](int i) { return coef[i]; }
+  FPS pre(int n) const {
+    std::vector&lt;T&gt; nex(n);
+    for(int i = 0;i &lt; coef.size() &amp;&amp; i &lt; n; i++) nex[i] = coef[i];
+    return FPS(nex);
+  }
+  
+  // F(0) must not be 0
+  FPS inv() const {
+    FPS g = FPS(std::vector&lt;T&gt;{ T(1) / (*this)[0] });
+    this-&gt;bound_resize();
+    i64 n = this-&gt;size();
+    for(int i = 1;i &lt; n;i &lt;&lt;= 1) {
+      g = g.pre(i &lt;&lt; 1);
+      auto gdft = fps_multiply::dft(g.coef);
+      auto e = fps_multiply::idft(
+          fps_multiply::multiply(
+            fps_multiply::dft(this-&gt;pre(i &lt;&lt; 1).coef), gdft
+            )
+          );
+      for(int j = 0;j &lt; i;j++) {
+        e[j] = T(0);
+        e[j + i] = e[j + i] * T(-1);
+      }
+      auto f = fps_multiply::idft(
+          fps_multiply::multiply(
+            fps_multiply::dft(e), std::move(gdft)
+            )
+          );
+      for(int j = 0;j &lt; i;j++) {
+        f[j] = g[j];
+      }
+      g.coef = std::move(f);
+    }
+    return g.pre(n);
+  }
+
+  FPS diff() const {
+    FPS res(std::vector&lt;T&gt;(this-&gt;size() - 1, T(0)));
+    for(i64 i = 1;i &lt; this-&gt;size();i++) res[i - 1] = coef[i] * T(i);
+    return res;
+  }
+
+  FPS integral() const {
+    FPS res(std::vector&lt;T&gt;(this-&gt;size() + 1, T(0)));
+    for(i64 i = 0;i &lt; this-&gt;size();i++) res[i + 1] = coef[i] / T(i + 1);
+    return res;
+  }
+
+  // F(0) must be 0
+  FPS log() const {
+    return (this-&gt;diff() * this-&gt;inv()).integral().pre(this-&gt;size());
+  }
+
+  FPS exp() const {
+    FPS f(std::vector&lt;T&gt;{ T(1) });
+    FPS g = *this;
+    g.bound_resize();
+    g[0] += T(1);
+    for(i64 i = 1;i &lt; size();i &lt;&lt;= 1 ) {
+      f = (f * (g.pre(i &lt;&lt; 1) - f.pre(i &lt;&lt; 1).log())).pre(i &lt;&lt; 1);
+    }
+    return f;
+  }
+  
+  FPS operator+(const FPS&amp; rhs) {
+    i64 n = std::max(this-&gt;size(), rhs.size());
+    std::vector&lt;T&gt; ans(n);
+    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] + rhs[i];
+    return FPS(ans);
+  }
+  FPS operator-(const FPS&amp; rhs) {
+    i64 n = std::max(this-&gt;size(), rhs.size());
+    std::vector&lt;T&gt; ans(n);
+    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] - rhs[i];
+    return FPS(ans);
+  }
+  FPS operator*(const FPS&amp; rhs) {
+    i64 m = this-&gt;size() + rhs.size() - 1;
+    i64 n = bound_pow2(m);
+    auto res = fps_multiply::idft(
+        fps_multiply::multiply(
+          fps_multiply::dft(this-&gt;pre(n).coef), fps_multiply::dft(rhs.pre(n).coef)
+          )
+        );
+    res.resize(m);
+    return res;
+  }
+
+};
+
+</code></pre>
+<h3 id="nttをそのまま使うとき"><a class="header" href="#nttをそのまま使うとき">NTTをそのまま使うとき</a></h3>
+<pre><code class="language-cpp">#include &quot;modint.hpp&quot;
 #include &quot;convolution/number_theoretic_transform.hpp&quot;
 
 template&lt;const i64 mod, const i64 primitive&gt;
@@ -157,8 +271,13 @@ struct fps_ntt_multiply {
   }
 };
 
-#include &lt;tuple&gt;
+</code></pre>
+<h3 id="任意modで"><a class="header" href="#任意modで">任意modで</a></h3>
+<pre><code class="language-cpp">#include &quot;modint.hpp&quot;
+#include &quot;convolution/number_theoretic_transform.hpp&quot;
 #include &quot;garner.hpp&quot;
+#include &lt;vector&gt;
+#include &lt;tuple&gt;
 
 template&lt;i64 M, i64... NTTis&gt;
 struct fps_multiply_arb {
@@ -208,114 +327,6 @@ struct fps_multiply_arb {
     mult_func(std::make_index_sequence&lt;tsize&gt;(), a, b);
     return a;
   }
-};
-
-template&lt;class T, class fps_multiply&gt;
-struct FPS {
-  std::vector&lt;T&gt; coef;
-
-  static std::size_t bound_pow2(std::size_t sz) {
-    return 1ll &lt;&lt; (__lg(sz - 1) + 1);
-  }
-  
-  FPS(const std::vector&lt;T&gt;&amp; arr): coef(arr) {}
-  size_t size() const { return coef.size(); }
-  void bound_resize() {
-    this-&gt;coef.resize(bound_pow2(this-&gt;size()));
-  }
-  T operator[](int i) const {
-    if(i &lt; coef.size()) return coef[i];
-    else return T();
-  }
-  T &amp; operator[](int i) { return coef[i]; }
-  FPS pre(int n) const {
-    std::vector&lt;T&gt; nex(n);
-    for(int i = 0;i &lt; coef.size() &amp;&amp; i &lt; n; i++) nex[i] = coef[i];
-    return FPS(nex);
-  }
-  
-  // F(0) must not be 0
-  FPS inv() const {
-    FPS g = FPS(std::vector&lt;T&gt;{ T(1) / (*this)[0] });
-    this-&gt;bound_resize();
-    i64 n = this-&gt;size();
-    for(int i = 1;i &lt; n;i &lt;&lt;= 1) {
-      g = g.pre(i &lt;&lt; 1);
-      auto gdft = fps_multiply::dft(g.coef);
-      auto e = fps_multiply::idft(
-          fps_multiply::multiply(
-            fps_multiply::dft(this-&gt;pre(i &lt;&lt; 1).coef), gdft
-            )
-          );
-      for(int j = 0;j &lt; i;j++) {
-        e[j] = T(0);
-        e[j + i] = e[j + i] * T(-1);
-      }
-      auto f = fps_multiply::idft(
-          fps_multiply::multiply(
-            fps_multiply::dft(e), std::move(gdft)
-            )
-          );
-      for(int j = 0;j &lt; i;j++) {
-        f[j] = g[j];
-      }
-      g.coef = std::move(f);
-    }
-    return g.pre(n);
-  }
-
-  FPS diff() const {
-    FPS res(vector&lt;T&gt;(this-&gt;size() - 1, T(0)));
-    for(i64 i = 1;i &lt; this-&gt;size();i++) res[i - 1] = coef[i] * T(i);
-    return res;
-  }
-
-  FPS integral() const {
-    FPS res(vector&lt;T&gt;(this-&gt;size() + 1, T(0)));
-    for(i64 i = 0;i &lt; this-&gt;size();i++) res[i + 1] = coef[i] / T(i + 1);
-    return res;
-  }
-
-  // F(0) must be 0
-  FPS log() const {
-    return (this-&gt;diff() * this-&gt;inv()).integral().pre(this-&gt;size());
-  }
-
-  FPS exp() const {
-    FPS f(vector&lt;T&gt;{ T(1) });
-    FPS g = *this;
-    g.bound_resize();
-    g[0] += T(1);
-    for(i64 i = 1;i &lt; size();i &lt;&lt;= 1 ) {
-      f = (f * (g.pre(i &lt;&lt; 1) - f.pre(i &lt;&lt; 1).log())).pre(i &lt;&lt; 1);
-    }
-    return f;
-  }
-  
-  FPS operator+(const FPS&amp; rhs) {
-    i64 n = std::max(this-&gt;size(), rhs.size());
-    std::vector&lt;T&gt; ans(n);
-    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] + rhs[i];
-    return FPS(ans);
-  }
-  FPS operator-(const FPS&amp; rhs) {
-    i64 n = std::max(this-&gt;size(), rhs.size());
-    std::vector&lt;T&gt; ans(n);
-    for(int i = 0;i &lt; n;i++) ans[i] = (*this)[i] - rhs[i];
-    return FPS(ans);
-  }
-  FPS operator*(const FPS&amp; rhs) {
-    i64 m = this-&gt;size() + rhs.size() - 1;
-    i64 n = bound_pow2(m);
-    auto res = fps_multiply::idft(
-        fps_multiply::multiply(
-          fps_multiply::dft(this-&gt;pre(n).coef), fps_multiply::dft(rhs.pre(n).coef)
-          )
-        );
-    res.resize(m);
-    return res;
-  }
-
 };
 
 </code></pre>
