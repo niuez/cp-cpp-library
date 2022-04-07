@@ -1,4 +1,4 @@
-# Black Box Liner Algebra
+# Black Box Linear Algebra
 
 
 ベクトルと行列の掛け算に\\(T(n)\\)時間かかるとします.

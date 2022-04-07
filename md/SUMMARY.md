@@ -58,7 +58,7 @@
     - [Factorial](./math/factorial.md)
     - [Adjucency Matrix Equation](./math/adjucency_matrix_equation.md)
     - [Berlekamp-Massey](./math/berlekamp_massey.md)
-    - [Black Box Liner Algebra](./math/black_box_liner_algebra.md)
+    - [Black Box Linear Algebra](./math/black_box_linear_algebra.md)
     - [Convolution](./math/convolution/index.md)
       - [Multiple Transform](./math/convolution/multiple_transform.md)
       - [Divisor Transform](./math/convolution/divisor_transform.md)
