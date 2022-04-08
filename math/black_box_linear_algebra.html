@@ -141,7 +141,6 @@
 <h3 id="最小多項式"><a class="header" href="#最小多項式">最小多項式</a></h3>
 <p>\(O(n^2 + n T(n))\)</p>
 <pre><code class="language-cpp">#include &quot;../berlekamp_massey.hpp&quot;
-
 #include &lt;vector&gt;
 
 template&lt;class F&gt;
@@ -165,29 +164,9 @@ std::vector&lt;F&gt; find_minimal_polynomial_from_vector(int n, const std::vecto
 }
 
 template&lt;class F, class NonZeroRandGen&gt;
-std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow_b(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, std::vector&lt;F&gt; b, NonZeroRandGen rnd) {
   int n = a.size();
-  std::vector&lt;std::vector&lt;F&gt;&gt; b(n * 2, std::vector&lt;F&gt;(n, F(0)));
-  for(int i = 0; i &lt; n; i++) b[0][i] = rnd();
-  for(int i = 1; i &lt; 2 * n; i++) {
-    auto&amp; bf = b[i - 1];
-    auto&amp; nx = b[i];
-    for(int j = 0; j &lt; n; j++) {
-      for(int k = 0; k &lt; n; k++) {
-        nx[j] += a[j][k] * bf[k];
-      }
-    }
-  }
-  return find_minimal_polynomial_from_vector(n, b, rnd);
-}
-
-// fast for dense matrix
-template&lt;class F, class NonZeroRandGen&gt;
-std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow2(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
-  int n = a.size();
-  std::vector&lt;F&gt; b(n);
   std::vector&lt;F&gt; bf;
-  for(int i = 0; i &lt; n; i++) b[i] = rnd();
 
   std::vector&lt;F&gt; u(n);
   for(int i = 0; i &lt; n; i++) u[i] = rnd();
@@ -210,10 +189,19 @@ std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow2(const std::v
   return find_minimal_polynomial(c);
 }
 
+// fast for dense matrix
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, NonZeroRandGen rnd) {
+  int n = a.size();
+  std::vector&lt;F&gt; b(n);
+  for(int i = 0; i &lt; n; i++) b[i] = rnd();
+  return find_minimal_polynomial_from_dense_matrix_pow_b(a, std::move(b), rnd);
+}
+
 #include &lt;tuple&gt;
 
 template&lt;class F, class NonZeroRandGen&gt;
-std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow2(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, int n, NonZeroRandGen rnd) {
+std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, int n, NonZeroRandGen rnd) {
   std::vector&lt;F&gt; b(n);
   std::vector&lt;F&gt; bf;
   for(int i = 0; i &lt; n; i++) b[i] = rnd();
@@ -238,7 +226,6 @@ std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow2(const std::
   }
   return find_minimal_polynomial(c);
 }
-
 </code></pre>
 <h3 id="行列式"><a class="header" href="#行列式">行列式</a></h3>
 <p>\(O(n^2 + n T(n))\)</p>
@@ -283,6 +270,34 @@ F fast_determinant_sparse(std::vector&lt;std::tuple&lt;int, int, F&gt;&gt; a, in
   return det / d_det;
 }
 
+</code></pre>
+<h3 id="行列累乗"><a class="header" href="#行列累乗">行列累乗</a></h3>
+<p>\(A^k b\)を求める. <code>fast_kitamasa</code>を用いて\(O(N^3 + N \log N \log k)\)</p>
+<pre><code class="language-cpp">#include &quot;../fast_kitamasa.hpp&quot;
+#include &lt;vector&gt;
+template&lt;class F, class FM, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; bbla_dense_matrix_pow(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, std::vector&lt;F&gt; b, long long r, NonZeroRandGen rnd) {
+  int n = a.size();
+  auto c = find_minimal_polynomial_from_dense_matrix_pow_b(a, b, rnd);
+  auto d = fast_kitamasa&lt;F, FM&gt;(std::move(c), r);
+  std::vector&lt;F&gt; ans(n);
+  std::vector&lt;F&gt; bf;
+  for(int i = 0; i &lt; d.size(); i++) {
+    for(int j = 0; j &lt; n; j++) {
+      ans[j] += d[d.size() - 1 - i] * b[j];
+    }
+    if(i + 1 &lt; d.size()) {
+      bf = b;
+      for(int j = 0; j &lt; n; j++) {
+        b[j] = F(0);
+        for(int k = 0; k &lt; n; k++) {
+          b[j] += a[j][k] * bf[k];
+        }
+      }
+    }
+  }
+  return ans;
+}
 </code></pre>
 
                     </main>

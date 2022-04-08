@@ -166,7 +166,7 @@ std::vector&lt;F&gt; berlekamp_massey(const std::vector&lt;F&gt;&amp; s) {
       shift = 0;
     }
   }
-  std::vector&lt;int&gt; ans(c.size() - 1);
+  std::vector&lt;F&gt; ans(c.size() - 1);
   for(int i = 1; i &lt; c.size(); i++) {
     ans[i - 1] = -c[i];
   }
