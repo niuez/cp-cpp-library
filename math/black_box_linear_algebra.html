@@ -201,10 +201,8 @@ std::vector&lt;F&gt; find_minimal_polynomial_from_dense_matrix_pow(const std::ve
 #include &lt;tuple&gt;
 
 template&lt;class F, class NonZeroRandGen&gt;
-std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, int n, NonZeroRandGen rnd) {
-  std::vector&lt;F&gt; b(n);
+std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow_b(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, std::vector&lt;F&gt; b, int n, NonZeroRandGen rnd) {
   std::vector&lt;F&gt; bf;
-  for(int i = 0; i &lt; n; i++) b[i] = rnd();
 
   std::vector&lt;F&gt; u(n);
   for(int i = 0; i &lt; n; i++) u[i] = rnd();
@@ -225,6 +223,13 @@ std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow(const std::v
     }
   }
   return find_minimal_polynomial(c);
+}
+
+template&lt;class F, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; find_minimal_polynomial_from_sparse_matrix_pow(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, int n, NonZeroRandGen rnd) {
+  std::vector&lt;F&gt; b(n);
+  for(int i = 0; i &lt; n; i++) b[i] = rnd();
+  return find_minimal_polynomial_from_sparse_matrix_pow_b(a, std::move(b), n, rnd);
 }
 </code></pre>
 <h3 id="行列式"><a class="header" href="#行列式">行列式</a></h3>
@@ -275,6 +280,7 @@ F fast_determinant_sparse(std::vector&lt;std::tuple&lt;int, int, F&gt;&gt; a, in
 <p>\(A^k b\)を求める. <code>fast_kitamasa</code>を用いて\(O(N^3 + N \log N \log k)\)</p>
 <pre><code class="language-cpp">#include &quot;../fast_kitamasa.hpp&quot;
 #include &lt;vector&gt;
+#include &lt;tuple&gt;
 template&lt;class F, class FM, class NonZeroRandGen&gt;
 std::vector&lt;F&gt; bbla_dense_matrix_pow(const std::vector&lt;std::vector&lt;F&gt;&gt;&amp; a, std::vector&lt;F&gt; b, long long r, NonZeroRandGen rnd) {
   int n = a.size();
@@ -293,6 +299,30 @@ std::vector&lt;F&gt; bbla_dense_matrix_pow(const std::vector&lt;std::vector&lt;F
         for(int k = 0; k &lt; n; k++) {
           b[j] += a[j][k] * bf[k];
         }
+      }
+    }
+  }
+  return ans;
+}
+
+template&lt;class F, class FM, class NonZeroRandGen&gt;
+std::vector&lt;F&gt; bbla_sparse_matrix_pow(const std::vector&lt;std::tuple&lt;int, int, F&gt;&gt;&amp; a, std::vector&lt;F&gt; b, long long r, NonZeroRandGen rnd) {
+  int n = b.size();
+  auto c = find_minimal_polynomial_from_sparse_matrix_pow_b(a, b, n, rnd);
+  auto d = fast_kitamasa&lt;F, FM&gt;(std::move(c), r);
+  std::vector&lt;F&gt; ans(n);
+  std::vector&lt;F&gt; bf;
+  for(int i = 0; i &lt; d.size(); i++) {
+    for(int j = 0; j &lt; n; j++) {
+      ans[j] += d[d.size() - 1 - i] * b[j];
+    }
+    if(i + 1 &lt; d.size()) {
+      bf = b;
+      for(int j = 0; j &lt; n; j++) {
+        b[j] = F(0);
+      }
+      for(auto&amp; [j, k, v]: a) {
+        b[j] += v * bf[k];
       }
     }
   }
