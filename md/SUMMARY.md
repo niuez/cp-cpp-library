@@ -46,6 +46,7 @@
       - [Range Valued Array](./data_structures/other/range_valued_array.md)
   - [Math](./math/index.md)
     - [modint](./math/modint.md)
+    - [mongomery modint](./math/mongomery_modint.md)
     - [Matrix](./math/matrix.md)
     - [Chinese Remainder Theorem](./math/crt.md)
     - [Garner's Algorithm](./math/garner.md)
