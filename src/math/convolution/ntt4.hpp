@@ -1,8 +1,8 @@
-#include <bits/stdc++.h>
+#include "../modint.hpp"
+#include <vector>
 using namespace std;
 using i64 = long long;
 
-#include "../modint.hpp"
 
 constexpr i64 NTT_PRIMES[][2] = {
     {1224736769, 3}, // 2^24 * 73 + 1,

@@ -12,3 +12,9 @@
 ```cpp
 {{#include ../../../src/math/convolution/number_theoretic_transform.hpp}}
 ```
+
+### 4基底NTT
+
+```cpp
+{{#include ../../../src/math/convolution/ntt4.hpp}}
+```
