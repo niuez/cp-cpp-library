@@ -18,3 +18,11 @@
 ```cpp
 {{#include ../../src/math/black_box_linear_algebra/fast_determinant.hpp}}
 ```
+
+### 行列累乗
+
+\\(A^k b\\)を求める. `fast_kitamasa`を用いて\\(O(N^3 + N \log N \log k)\\)
+
+```cpp
+{{#include ../../src/math/black_box_linear_algebra/fast_matrix_pow.hpp}}
+```
