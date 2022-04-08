@@ -59,10 +59,8 @@ std::vector<F> find_minimal_polynomial_from_dense_matrix_pow(const std::vector<s
 #include <tuple>
 
 template<class F, class NonZeroRandGen>
-std::vector<F> find_minimal_polynomial_from_sparse_matrix_pow(const std::vector<std::tuple<int, int, F>>& a, int n, NonZeroRandGen rnd) {
-  std::vector<F> b(n);
+std::vector<F> find_minimal_polynomial_from_sparse_matrix_pow_b(const std::vector<std::tuple<int, int, F>>& a, std::vector<F> b, int n, NonZeroRandGen rnd) {
   std::vector<F> bf;
-  for(int i = 0; i < n; i++) b[i] = rnd();
 
   std::vector<F> u(n);
   for(int i = 0; i < n; i++) u[i] = rnd();
@@ -83,4 +81,11 @@ std::vector<F> find_minimal_polynomial_from_sparse_matrix_pow(const std::vector<
     }
   }
   return find_minimal_polynomial(c);
+}
+
+template<class F, class NonZeroRandGen>
+std::vector<F> find_minimal_polynomial_from_sparse_matrix_pow(const std::vector<std::tuple<int, int, F>>& a, int n, NonZeroRandGen rnd) {
+  std::vector<F> b(n);
+  for(int i = 0; i < n; i++) b[i] = rnd();
+  return find_minimal_polynomial_from_sparse_matrix_pow_b(a, std::move(b), n, rnd);
 }
