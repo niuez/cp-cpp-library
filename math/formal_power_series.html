@@ -145,113 +145,176 @@ std::size_t bound_pow2(std::size_t sz) {
   return 1ll &lt;&lt; (__lg(sz - 1) + 1);
 }
 
-template&lt;class T, class fps_multiply&gt;
+template&lt;class fps_multiply&gt;
 struct FPS {
+  struct DFT {
+    using C = typename fps_multiply::conv_type;
+    std::vector&lt;C&gt; coef;
+    DFT(std::vector&lt;C&gt; c): coef(std::move(c)) {}
+    DFT clone() const {
+      return DFT(coef);
+    }
+    std::size_t size() const {
+      return coef.size();
+    }
+    C&amp; operator[](int i) {
+      return coef[i];
+    }
+    const C&amp; operator[](int i) const {
+      return coef[i];
+    }
+    DFT&amp; operator+=(const DFT&amp; r) {
+      assert(coef.size() == r.size());
+      for(int i = 0;i &lt; coef.size(); i++) {
+        coef[i] += r[i];
+      }
+      return (*this);
+    }
+    DFT&amp; operator-=(const DFT&amp; r) {
+      assert(coef.size() == r.size());
+      for(int i = 0;i &lt; coef.size(); i++) {
+        coef[i] -= r[i];
+      }
+      return (*this);
+    }
+    DFT&amp; operator*=(const DFT&amp; r) {
+      assert(coef.size() == r.size());
+      for(int i = 0;i &lt; coef.size(); i++) {
+        coef[i] *= r[i];
+      }
+      return (*this);
+    }
+    DFT&amp; operator*=(const C&amp; t) {
+      for(int i = 0; i &lt; coef.size(); i++) {
+        coef[i] *= t;
+      }
+      return (*this);
+    }
+    DFT operator+(const DFT&amp; r) const { return DFT(*this) += r; }
+    DFT operator-(const DFT&amp; r) const { return DFT(*this) -= r; }
+    DFT operator*(const DFT&amp; r) const { return DFT(*this) *= r; }
+    DFT operator*(const C&amp; r) const { return DFT(*this) *= r; }
+    FPS idft(int n = -1) &amp;&amp; {
+      auto res = fps_multiply::idft(std::move(coef));
+      if(n &gt; 0) {
+        res.resize(n);
+      }
+      return FPS(std::move(res));
+    }
+  };
+  using T = typename fps_multiply::fps_type;
   std::vector&lt;T&gt; coef;
-
-  FPS(std::vector&lt;T&gt; arr): coef(std::move(arr)) {}
-  size_t size() const { return coef.size(); }
-  void bound_resize() {
-    this-&gt;coef.resize(bound_pow2(this-&gt;size()));
+  FPS(std::vector&lt;T&gt; f): coef(std::move(f)) {}
+  void resize(int n) { coef.resize(n, T(0)); }
+  FPS resized(int n) const {
+    std::vector&lt;T&gt; res(n);
+    for(int i = 0;i &lt; n &amp;&amp; i &lt; coef.size();i++) res[i] = coef[i];
+    return FPS(std::move(res));
+  }
+  FPS clone() const {
+    return FPS(coef);
+  }
+  std::size_t size() const {
+    return coef.size();
+  }
+  T&amp; operator[](int i) {
+    return coef[i];
   }
   const T&amp; operator[](int i) const {
     return coef[i];
   }
-  T &amp; operator[](int i) { return coef[i]; }
-  FPS pre(int n) const {
-    std::vector&lt;T&gt; nex(n, T(0));
-    for(int i = 0;i &lt; coef.size() &amp;&amp; i &lt; n; i++) nex[i] = coef[i];
-    return FPS(nex);
+  FPS&amp; operator+=(const FPS&amp; r) {
+    if(coef.size() &lt; r.size()) coef.resize(r.size());
+    for(int i = 0;i &lt; coef.size() &amp;&amp; i &lt; r.size(); i++) {
+      coef[i] += r[i];
+    }
+    return (*this);
   }
-  
-  // F(0) must not be 0
-  FPS inv() const {
+  FPS&amp; operator-=(const FPS&amp; r) {
+    if(coef.size() &lt; r.size()) coef.resize(r.size());
+    for(int i = 0;i &lt; coef.size() &amp;&amp; i &lt; r.size(); i++) {
+      coef[i] -= r[i];
+    }
+    return (*this);
+  }
+  FPS&amp; operator*=(const T&amp; t) {
+    for(int i = 0; i &lt; coef.size(); i++) {
+      coef[i] *= t;
+    }
+  }
+  FPS operator+(const FPS&amp; r) const { return FPS(*this) += r; }
+  FPS operator-(const FPS&amp; r) const { return FPS(*this) -= r; }
+  FPS operator*(const T&amp; r) const { return FPS(*this) *= r; }
+  DFT dft(int n) &amp;&amp; {
+    assert(!(n &amp; (n - 1)));
+    coef.resize(n);
+    return DFT(fps_multiply::dft(std::move(coef)));
+  }
+
+  FPS inv(int n) const {
     FPS g = FPS(std::vector&lt;T&gt;{ T(1) / (*this)[0] });
-    i64 n = bound_pow2(this-&gt;size());
     for(int i = 1;i &lt; n;i &lt;&lt;= 1) {
-      g = g.pre(i &lt;&lt; 1);
-      auto gdft = fps_multiply::dft(g.coef);
-      auto e = fps_multiply::idft(
-          fps_multiply::multiply(
-            fps_multiply::dft(this-&gt;pre(i &lt;&lt; 1).coef), gdft
-            )
-          );
+      DFT gdft = g.resized(i &lt;&lt; 1).dft(i &lt;&lt; 1);
+      FPS e = (gdft * this-&gt;resized(i &lt;&lt; 1).dft(i &lt;&lt; 1)).idft();
       for(int j = 0;j &lt; i;j++) {
         e[j] = T(0);
         e[j + i] = e[j + i] * T(-1);
       }
-      auto f = fps_multiply::idft(
-          fps_multiply::multiply(
-            fps_multiply::dft(e), std::move(gdft)
-            )
-          );
+      FPS f = std::move(gdft *= std::move(e).dft(i &lt;&lt; 1)).idft();
       for(int j = 0;j &lt; i;j++) {
         f[j] = g[j];
       }
-      g.coef = std::move(f);
+      g = std::move(f);
     }
-    return g.pre(n);
+    g.resize(n);
+    return g;
   }
 
-  FPS diff() const {
-    FPS res(std::vector&lt;T&gt;(this-&gt;size() - 1, T(0)));
-    for(i64 i = 1;i &lt; this-&gt;size();i++) res[i - 1] = coef[i] * T(i);
-    return res;
+  FPS diff(int n) const {
+    std::vector&lt;T&gt; res(n);
+    for(int i = 0; i + 1 &lt; this-&gt;size() &amp;&amp; i &lt; n; i++) {
+      res[i] = coef[i + 1] * T(i + 1);
+    }
+    return FPS(std::move(res));
   }
 
-  FPS integral() const {
-    FPS res(std::vector&lt;T&gt;(this-&gt;size() + 1, T(0)));
-    for(i64 i = 0;i &lt; this-&gt;size();i++) res[i + 1] = coef[i] / T(i + 1);
-    return res;
+  FPS integral(int n) const {
+    std::vector&lt;T&gt; res(n);
+    int m = std::min(n, int(coef.size() + 1));
+    res[0] = T(1);
+    for(int i = 1; i &lt; m; i++) {
+      res[i] = res[i - 1] * T(i);
+    }
+    T finv = T(1) / res[m - 1];
+    for(int i = m; i --&gt; 1;) {
+      res[i] = coef[i - 1] * finv * res[i - 1];
+      finv *= T(i);
+    }
+    res[0] = T(0);
+    return FPS(std::move(res));
   }
 
-  // F(0) must be 0
-  FPS log() const {
-    return (this-&gt;diff() * this-&gt;inv()).integral().pre(this-&gt;size());
+  // F(0) must not be 0
+  FPS log(int n) const {
+    FPS in = this-&gt;inv(n);
+    FPS di = this-&gt;diff(n);
+    int m = bound_pow2(n);
+    return (std::move(di).dft(m * 2) * std::move(in).dft(m * 2)).idft().integral(n);
   }
 
-  FPS exp() const {
+  FPS exp(int n) const {
     FPS f(std::vector&lt;T&gt;{ T(1) });
-    FPS g = *this;
-    g.bound_resize();
-    g[0] += T(1);
-    for(i64 i = 1;i &lt; size();i &lt;&lt;= 1 ) {
-      f = (f * (g.pre(i &lt;&lt; 1) - f.pre(i &lt;&lt; 1).log())).pre(i &lt;&lt; 1);
+    for(i64 i = 1;i &lt; n;i &lt;&lt;= 1 ) {
+      FPS flog = f.log(i &lt;&lt; 1);
+      for(int j = 0; j &lt; (i &lt;&lt; 1); j++) {
+        flog[j] = (j &lt; coef.size() ? coef[j] - flog[j] : -flog[j]);
+      }
+      flog[0] += T(1);
+      f = (std::move(f).dft(i &lt;&lt; 2) * std::move(flog).dft(i &lt;&lt; 2)).idft(i &lt;&lt; 1);
     }
+    f.resize(n);
     return f;
   }
-
-  FPS&amp; operator+=(const FPS&amp; rhs) {
-    i64 n = std::max(this-&gt;size(), rhs.size());
-    this-&gt;coef.resize(n, T(0));
-    for(int i = 0;i &lt; rhs.size();i++) this-&gt;coef[i] += rhs[i];
-    return *this;
-  }
-  FPS&amp; operator-=(const FPS&amp; rhs) {
-    i64 n = std::max(this-&gt;size(), rhs.size());
-    this-&gt;coef.resize(n, T(0));
-    for(int i = 0;i &lt; rhs.size();i++) this-&gt;coef[i] -= rhs[i];
-    return *this;
-  }
-  
-  FPS operator+(const FPS&amp; rhs) const {
-    return (*this) += rhs;
-  }
-  FPS operator-(const FPS&amp; rhs) const {
-    return (*this) -= rhs;
-  }
-  FPS operator*(const FPS&amp; rhs) {
-    i64 m = this-&gt;size() + rhs.size() - 1;
-    i64 n = bound_pow2(m);
-    auto res = fps_multiply::idft(
-        fps_multiply::multiply(
-          fps_multiply::dft(this-&gt;pre(n).coef), fps_multiply::dft(rhs.pre(n).coef)
-          )
-        );
-    res.resize(m);
-    return res;
-  }
-
 };
 </code></pre>
 <h3 id="nttをそのまま使うとき"><a class="header" href="#nttをそのまま使うとき">NTTをそのまま使うとき</a></h3>
