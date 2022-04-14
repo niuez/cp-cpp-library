@@ -7399,6 +7399,26 @@ i64 garner(const vector&lt;i64&gt; &amp;x, vector&lt;i64&gt; mods, i64 mod) {
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="formal-power-series"><a class="header" href="#formal-power-series">Formal Power Series</a></h1>
 <h3 id="fps"><a class="header" href="#fps">FPS</a></h3>
+<p>FPS </p>
+<ul>
+<li><code>resize</code>: リサイズ</li>
+<li><code>resized</code>: リサイズしたFPSを返す</li>
+<li><code>+=, -=, +, -</code>: 加減法、次数の大きい方にリサイズされる。</li>
+<li><code>*, *=</code>: 定数倍</li>
+<li><code>DFT dft(int n)</code>: 長さ<code>n</code>にリサイズして<code>dft</code></li>
+<li><code>inv(int n)</code>: \(f * g \equiv 1 \pmod{x^n}\)となるような\(g\)を返す</li>
+<li><code>diff(int n)</code>: \(f' \bmod{x^n}\)</li>
+<li><code>integral(int n)</code>: \(\int f dx \bmod{x^n}\)</li>
+<li><code>log(int n)</code>: \(\log f \bmod{x^n}\)</li>
+<li><code>exp(int n)</code>: \(\exp f \bmod{x^n}\)</li>
+</ul>
+<p>DFT</p>
+<ul>
+<li><code>+=, -=, +, -</code>: 加減法 線形性より</li>
+<li><code>*, *=</code>: 定数倍 線形性より</li>
+<li><code>*</code>: 畳み込み</li>
+<li><code>idft(int n = -1)</code>: <code>idft</code>した後に長さ<code>n</code>でリサイズ 指定しなければそのまま</li>
+</ul>
 <pre><code class="language-cpp">#include &lt;vector&gt;
 using i64 = long long;
 
