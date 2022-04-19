@@ -57,6 +57,7 @@
     - [Runtime fp](./math/runtime_fp.md)
     - [F2FPS](./math/binfps.md)
     - [Factorial](./math/factorial.md)
+    - [osa\_k](./math/osa_k.md)
     - [Adjucency Matrix Equation](./math/adjucency_matrix_equation.md)
     - [Berlekamp-Massey](./math/berlekamp_massey.md)
     - [Fast-Kitamasa](./math/fast_kitamasa.md)
