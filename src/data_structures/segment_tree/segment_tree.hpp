@@ -39,7 +39,7 @@ struct segment_tree {
   }
 
   const T& at(i64 i) const {
-    return node[i];
+    return node[i + n];
   }
 
   template<class F>
