@@ -119,11 +119,11 @@ namespace Geometory {
       sort(p.begin(), p.end());
       vector<Point> ch(2 * n);
       for (int i = 0; i < n; ch[k++] = p[i++]) {
-        while (k >= 2 && cross(ch[k - 1] - ch[k - 2], p[i] - ch[k - 1]) < 0)
+        while (k >= 2 && cross(ch[k - 1] - ch[k - 2], p[i] - ch[k - 1]) <= 0)
           k--;
       }
       for (int i = n - 2, t = k + 1; i >= 0; ch[k++] = p[i--]) {
-        while (k >= t && cross(ch[k - 1] - ch[k - 2], p[i] - ch[k - 1]) < 0)
+        while (k >= t && cross(ch[k - 1] - ch[k - 2], p[i] - ch[k - 1]) <= 0)
           k--;
       }
       ch.resize(k - 1);
