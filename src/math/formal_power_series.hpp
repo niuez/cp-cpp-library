@@ -2,7 +2,7 @@
 using i64 = long long;
 
 std::size_t bound_pow2(std::size_t sz) {
-  return 1ll << (__lg(sz - 1) + 1);
+  return 1ll << (std::__lg(sz - 1) + 1);
 }
 
 template<class fps_multiply>
