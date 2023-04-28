@@ -5,8 +5,10 @@
         <meta charset="UTF-8">
         <title>cp-cpp-library Document</title>
         <meta name="robots" content="noindex" />
+
+
         <!-- Custom HTML head -->
-        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
@@ -17,27 +19,31 @@
         <link rel="stylesheet" href="css/general.css">
         <link rel="stylesheet" href="css/chrome.css">
         <link rel="stylesheet" href="css/print.css" media="print">
+
         <!-- Fonts -->
         <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
         <link rel="stylesheet" href="fonts/fonts.css">
+
         <!-- Highlight.js Stylesheets -->
         <link rel="stylesheet" href="highlight.css">
         <link rel="stylesheet" href="tomorrow-night.css">
         <link rel="stylesheet" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+
         <!-- MathJax -->
-        <script async type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     </head>
     <body>
+    <div id="body-container">
         <!-- Provide site root to javascript -->
-        <script type="text/javascript">
+        <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
-        <script type="text/javascript">
+        <script>
             try {
                 var theme = localStorage.getItem('mdbook-theme');
                 var sidebar = localStorage.getItem('mdbook-sidebar');
@@ -53,7 +59,7 @@
         </script>
 
         <!-- Set the theme before any content is loaded, prevents flash -->
-        <script type="text/javascript">
+        <script>
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
@@ -65,12 +71,14 @@
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
-        <script type="text/javascript">
+        <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -86,7 +94,7 @@
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
+                                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky bordered">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -96,7 +104,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
@@ -113,6 +121,7 @@
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+
                     </div>
                 </div>
 
@@ -126,8 +135,9 @@
                         </ul>
                     </div>
                 </div>
+
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
-                <script type="text/javascript">
+                <script>
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
                     document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
                     Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
@@ -7423,7 +7433,7 @@ i64 garner(const vector&lt;i64&gt; &amp;x, vector&lt;i64&gt; mods, i64 mod) {
 using i64 = long long;
 
 std::size_t bound_pow2(std::size_t sz) {
-  return 1ll &lt;&lt; (__lg(sz - 1) + 1);
+  return 1ll &lt;&lt; (std::__lg(sz - 1) + 1);
 }
 
 template&lt;class fps_multiply&gt;
@@ -7696,27 +7706,31 @@ struct fps_multiply_arb {
 <h3 id="code-40"><a class="header" href="#code-40">Code</a></h3>
 <pre><code class="language-cpp">#include &quot;formal_power_series.hpp&quot;
 
-template&lt;class T, class fps_multiply&gt;
-T mori_fps_division(FPS&lt;T, fps_multiply&gt; P, FPS&lt;T, fps_multiply&gt; Q, std::size_t N) {
-  P.bound_resize();
-  Q.bound_resize();
-  i64 k = std::max(P.size(), Q.size());
-  P.coef.resize(k * 2);
-  Q.coef.resize(k * 2);
+template&lt;class fps_multiply&gt;
+typename fps_multiply::fps_type mori_fps_division(FPS&lt;fps_multiply&gt; P, FPS&lt;fps_multiply&gt; Q, std::size_t N) {
+  using T = typename fps_multiply::fps_type;
+  i64 k = bound_pow2(std::max(P.size(), Q.size()));
+  P.resize(k * 2);
+  Q.resize(k * 2);
   while(N &gt; 0) {
     auto Qm = Q;
     for(std::size_t i = 1; i &lt; Qm.size(); i += 2) {
       Qm[i] *= T(-1);
     }
-    auto Pd = fps_multiply::dft(std::move(P.coef));
-    auto Qd = fps_multiply::dft(std::move(Q.coef));
-    auto Qmd = fps_multiply::dft(std::move(Qm.coef));
-    auto PQ = fps_multiply::idft(
-        fps_multiply::multiply(std::move(Pd), Qmd)
-        );
-    auto QQ = fps_multiply::idft(
-        fps_multiply::multiply(std::move(Qd), std::move(Qmd))
-        );
+    //auto Pd = fps_multiply::dft(std::move(P.coef));
+    //auto Qd = fps_multiply::dft(std::move(Q.coef));
+    //auto Qmd = fps_multiply::dft(std::move(Qm.coef));
+    auto Pd = std::move(P).dft(k * 2);
+    auto Qd = std::move(Q).dft(k * 2);
+    auto Qmd = std::move(Qm).dft(k * 2);
+    //auto PQ = fps_multiply::idft(
+    //    fps_multiply::multiply(std::move(Pd), Qmd)
+    //    );
+    auto PQ = std::move(Pd *= Qmd).idft();
+    //auto QQ = fps_multiply::idft(
+    //    fps_multiply::multiply(std::move(Qd), std::move(Qmd))
+    //    );
+    auto QQ = std::move(Qd *= Qmd).idft();
     {
       std::size_t i = 0;
       for(std::size_t j = 0; j &lt; QQ.size(); j += 2) {
@@ -7731,11 +7745,37 @@ T mori_fps_division(FPS&lt;T, fps_multiply&gt; P, FPS&lt;T, fps_multiply&gt; Q, 
       }
       while(i &lt; PQ.size()) PQ[i++] = T(0);
     }
-    P.coef = std::move(PQ);
-    Q.coef = std::move(QQ);
+    P = std::move(PQ);
+    Q = std::move(QQ);
     N /= 2;
   }
   return P[0] / Q[0];
+}
+
+#include &quot;fps_ntt_multiply.hpp&quot;
+#include &lt;iostream&gt;
+
+int main() {
+  std::cin.tie(nullptr);
+  std::ios::sync_with_stdio(false);
+  using fp = modint&lt;998244353&gt;;
+  using mlt = fps_ntt_multiply&lt;998244353, 3&gt;;
+  using fps = FPS&lt;mlt&gt;;
+
+  i64 D, K;
+  std::cin &gt;&gt; D &gt;&gt; K;
+
+  vector&lt;fp&gt; a(D);
+  for(int i = 0;i &lt; D;i++) std::cin &gt;&gt; a[i].a;
+  vector&lt;fp&gt; c(D + 1);
+  for(int i = 1; i &lt;= D; i++) std::cin &gt;&gt; c[i].a;
+  c[0] = fp(-1);
+
+  fps A(std::move(a));
+  fps Q(std::move(c));
+  i64 d = bound_pow2(D + 1);
+  fps P = std::move(Q.clone().dft(d) *= std::move(A).dft(d)).idft(D);
+  std::cout &lt;&lt; mori_fps_division&lt;mlt&gt;(std::move(P), std::move(Q), K).a &lt;&lt; std::endl;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="modint-1"><a class="header" href="#modint-1">modint</a></h1>
@@ -11119,18 +11159,22 @@ std::vector&lt;T&gt; rerooting(const std::vector&lt;std::vector&lt;E&gt;&gt;&amp
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+
+
                         <div style="clear: both"></div>
                     </nav>
                 </div>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
             </nav>
 
         </div>
 
+
         <!-- Google Analytics Tag -->
-        <script type="text/javascript">
+        <script>
             var localAddrs = ["localhost", "127.0.0.1", ""];
 
             // make sure we don't activate google analytics if the developer is
@@ -11145,23 +11189,31 @@ std::vector&lt;T&gt; rerooting(const std::vector&lt;std::vector&lt;E&gt;&gt;&amp
                 ga('send', 'pageview');
             }
         </script>
-        <script type="text/javascript">
+
+
+        <script>
             window.playground_copyable = true;
         </script>
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
-        <script type="text/javascript">
+
+        <script>
         window.addEventListener('load', function() {
             MathJax.Hub.Register.StartupHook('End', function() {
                 window.setTimeout(window.print, 100);
             });
         });
         </script>
+
+    </div>
     </body>
 </html>
